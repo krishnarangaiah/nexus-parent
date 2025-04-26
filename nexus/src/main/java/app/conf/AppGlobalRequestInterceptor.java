@@ -2,8 +2,8 @@ package app.conf;
 
 import app.service.AppBeanContextService;
 import app.session.SessionUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -16,7 +16,7 @@ import java.util.Map;
 
 public class AppGlobalRequestInterceptor implements HandlerInterceptor {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AppGlobalRequestInterceptor.class);
+    private static final Logger LOGGER = LogManager.getLogger(AppGlobalRequestInterceptor.class);
     private static final String LOGIN_FORM = "/AppUser/LoginForm";
     private static final List<String> ALLOWED_URIS = Arrays.asList(
             "/AppUser/Login",
