@@ -1,0 +1,80 @@
+/* Body */
+body {
+    /* background: linear-gradient(135deg, #f5f5f5, #e0e0e0); /* Neutral background for contrast */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Navbar */
+.navbar {
+    background: linear-gradient(135deg, #343a40, #495057); /* Dark gray gradient */
+    border-bottom: 1px solid #dee2e6; /* Subtle gray border */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Light shadow */
+}
+
+.navbar-brand, .nav-link {
+    color: #ffffff !important; /* White text for contrast */
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+    color: #ff5252 !important; /* Bright red on hover for contrast */
+}
+
+/* Cards */
+.custom-card {
+   /* background: linear-gradient(135deg, #ffffff, #e3f2fd); /* Light gradient */
+    border: 1px solid #90caf9; /* Light blue border */
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    transition: transform 0.2s ease, box-shadow 0.3s ease;
+}
+
+.custom-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2); /* Enhanced shadow on hover */
+   /* background: linear-gradient(135deg, #e3f2fd, #bbdefb); /* Slightly darker hover gradient */
+}
+
+.custom-card .card-title h5 {
+    color: #1e88e5; /* Primary blue for the title */
+}
+
+.custom-card:hover h5 {
+    color: #ff5252; /* Bright red on hover for contrast */
+}
+
+/* Buttons */
+.btn-secondary {
+    background-color: #4b5563;
+    border: none;
+    font-weight: 500;
+    color: #ffffff;
+}
+.btn-secondary:hover {
+    background-color: #374151;
+    color: #ff5252; /* Bright red text on hover */
+}
+
+/* Cards without transform effect */
+.no-transform-card {
+    transform: none !important;
+}
+
+.custom-card.no-transform-card:hover {
+    /* background: linear-gradient(135deg, #ffffff, #e3f2fd) !important; /* Explicitly set the original background */
+    transform: none !important; /* Prevent any transform */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+.custom-card.no-transform-card:hover h5 {
+    color: inherit !important; /* Retain the original color */
+}
+
+/* Divider Styling */
+hr {
+    height: 1px;
+    border: none;
+    background: linear-gradient(to right, transparent, #1e88e5, transparent); /* Blue gradient divider */
+    margin: 1rem auto;
+}

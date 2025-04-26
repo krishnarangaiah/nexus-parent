@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<html>
+<head>
+    <header th:insert="layout/AppLayout.html :: header"></header>
+
+    <style>
+    th, td {
+        text-align: center;
+    }
+
+
+    </style>
+
+</head>
+<body>
+<div th:insert="layout/AppLayout.html :: nav"></div>
+
+<div class="container-fluid h-100">
+
+    <div class="row justify-content-center align-items-center h-100">
+
+        <div class="card" style="width: 60%">
+            <h5 class="card-header text-danger font-weight-bold mb-0">
+                <a href="/AppUser/List" style="color: white;" class="text-danger font-weight-bold mb-0" > <i class="fa fa-address-book-o" aria-hidden="true"></i></a>
+                | Users
+                <span style="float: right;"> <a href="/AppUser/Create" style="color: white;"> <i class="fa fa-appUser-o"
+                                                                                              aria-hidden="true"></i> </a> </span>
+            </h5>
+
+            <table class="card-body table-sm mb-0">
+                <thead>
+                <tr>
+                    <th scope="col">Id</th>
+                    <th scope="col">User Name</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Role</th>
+                    <th scope="col">Login Count</th>
+                    <th scope="col">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="appUser: ${appUsers}">
+                    <td th:text="${appUser.id}"/>
+                    <td th:text="${appUser.userName}"/>
+                    <td th:text="${appUser.email}"/>
+                    <td th:text="${appUser.role}"/>
+                    <td th:text="${appUser.loginCount}"/>
+                    <td><a th:href="@{/AppUser/Read/?id={id}(id=${appUser.id})}"><i class="fa fa-eye" style="color: gray;"
+                                                                              aria-hidden="true"></i></a> |
+                        <a th:href="@{/AppUser/Delete/?id={id}(id=${appUser.id})}"><i class="fa fa-times" style="color: gray;"
+                                                                                aria-hidden="true"></i></a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+
+        </div>
+
+    </div>
+
+
+</div>
+</body>
+</html>

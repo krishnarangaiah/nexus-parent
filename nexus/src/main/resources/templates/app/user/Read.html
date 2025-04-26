@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<html>
+<head>
+    <header th:insert="layout/AppLayout.html :: header"></header>
+</head>
+<body>
+<div th:insert="layout/AppLayout.html :: nav"></div>
+
+<div class="container-fluid h-100">
+
+    <div class="row justify-content-center align-items-center h-100">
+
+        <div class="card" style="width: 60%">
+            <h5 class="card-header text-danger font-weight-bold mb-0">
+                <i class="fa fa-appUser-o" aria-hidden="true"></i> Update User
+                <span style="float: right;">
+                    <a href="/AppUser/List" style="color: white;"> <i class="fa fa-address-book-o" aria-hidden="true"></i></a> |
+                    <a href="/AppUser/Create" style="color: white;"> <i class="fa fa-appUser-o" aria-hidden="true"></i> </a>
+                </span>
+
+            </h5>
+            <div class="card-body">
+                <div class="row justify-content-center align-items-center h-100">
+                    <div class="col col-xl-12">
+                        <form id="addAdminId" action="/AppUser/Update" method="post">
+
+                            <div class="row">
+
+                                <div class="col">
+                                    <div class="form-group">
+                                        <label for="userNameId">User Name</label>
+                                        <input id="userNameId" name="userName" type="text" class="form-control"
+                                               th:value="${appUser.userName}">
+                                    </div>
+                                </div>
+
+                                <div class="col">
+                                    <div class="form-group">
+                                        <label for="roleId">Role</label>
+                                        <select id="roleId" name="role" class="form-control">
+                                            <option th:each="roleOpt : ${T(app.dao.model.appUser.Role).values()}"
+                                                    th:value="${roleOpt}" th:text="${roleOpt}"
+                                                    th:selected="${roleOpt==appUser.role}">
+                                            </option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <div class="row">
+
+                                <div class="col">
+                                    <div class="form-group">
+                                        <label for="emailId">Email</label>
+                                        <input id="emailId" name="email" type="text" class="form-control"
+                                               th:value="${appUser.email}">
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <br/>
+                            <input type="hidden" name="id" th:value="${appUser.id}">
+                            <div class="row">
+                                <div class="col">
+                                    <center>
+                                        <div class="form-group">
+                                            <div class="col">
+                                                <button type="submit" class="btn btn-secondary">Save</button>
+                                            </div>
+                                        </div>
+                                    </center>
+                                </div>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>

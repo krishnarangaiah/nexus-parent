@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="header">
+    <head>
+        <title th:text="${appProperty.appName}"/>
+        <meta charset="UTF-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <link rel="stylesheet" href="/webjars/bootstrap/5.3.3/css/bootstrap.min.css"/>
+        <link rel="stylesheet" href="/webjars/font-awesome/4.7.0/css/font-awesome.min.css"/>
+        <link th:href="@{/css/app.css}" rel="stylesheet"/>
+
+        <script type="text/javascript" src="/webjars/jquery/3.5.1/jquery.min.js"></script>
+        <script type="text/javascript" src="/webjars/bootstrap/5.3.3/js/bootstrap.min.js"></script>
+        <script type="text/javascript" src="/webjars/d3js/5.16.0/d3.min.js"></script>
+    </head>
+</div>
+
+
+<div th:fragment="nav">
+
+    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+        <div class="container-fluid">
+            <a class="navbar-brand ms-3" href="/"><span th:text="${appProperty.appName}"/></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                    aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+                </ul>
+                <ul class="navbar-nav justify-content-end">
+                    <li th:if="${session.USER != null}" class="nav-item">
+                        <span class="nav-link" th:text="${session.USER.userName}"></span>
+                    </li>
+                </ul>
+                <ul class="navbar-nav justify-content-end">
+
+                    <li th:if="${session.USER != null}" class="nav-item">
+                        <a class="nav-link" href="/AppUser/Logout">Logout</a>
+                    </li>
+
+                    <li th:if="${session.USER == null}" class="nav-item">
+                        <a class="nav-link" href="/AppUser/LoginForm">Login</a>
+                    </li>
+
+
+                </ul>
+
+            </div>
+        </div>
+    </nav>
+
+    <div style="display:block; width:100%; height:5em; padding-top:0.3em; padding-bottom:0.5em;">
+        <center>
+            <span th:if="${session.ERROR_MSG != null}">
+                <div id="errorMsgId" class="alert  alert-danger" role="alert" style="width: 60%;">
+                    <span th:text="${session.ERROR_MSG}"/>
+                </div>
+            </span>
+            <span th:if="${session.WARN_MSG != null}">
+                <div id="warnMsgId" class="alert alert-warning" role="alert" style="width: 60%;">
+                    <span th:text="${session.WARN_MSG}"/>
+                </div>
+            </span>
+            <span th:if="${session.ACTION_MSG != null}">
+                <div id="actionMsgId" class="alert alert-success" role="alert" style="width: 60%;">
+                    <span th:text="${session.ACTION_MSG}"/>
+                </div>
+            </span>
+        </center>
+    </div>
+    <span th:text="${T(app.session.SessionUtil).cleanViewedMsgs(#session)}"></span>
+    <script type="text/javascript" th:src="@{/js/app.js}"></script>
+</div>
+
