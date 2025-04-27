@@ -65,10 +65,15 @@ public class SessionUtil {
     }
 
     public static void cleanViewedMsgs(HttpSession session) {
-        LOGGER.debug("Clearing ERROR/ACTION/WARN messages after viewed them");
-        session.removeAttribute(ERROR_MSG);
-        session.removeAttribute(WARN_MSG);
-        session.removeAttribute(ACTION_MSG);
+        if(session != null) {
+            LOGGER.info("Clearing ERROR/ACTION/WARN messages after viewed them");
+            session.removeAttribute(ERROR_MSG);
+            session.removeAttribute(WARN_MSG);
+            session.removeAttribute(ACTION_MSG);
+        }else {
+            LOGGER.warn("Session is null, cannot clear messages");
+        }
+
     }
 
 }

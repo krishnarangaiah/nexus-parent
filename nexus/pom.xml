@@ -25,7 +25,11 @@
                 <configuration>
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.source}</target>
+                    <compilerArgs>
+                        <arg>-parameters</arg>
+                    </compilerArgs>
                 </configuration>
+
             </plugin>
             <!-- Spring Boot -->
             <plugin>

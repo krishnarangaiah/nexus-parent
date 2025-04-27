@@ -8,9 +8,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 
 
-public class AppInit {
+public class NexusApplication {
 
-    private static final Logger LOGGER = LogManager.getLogger(AppInit.class);
+    private static final Logger LOGGER = LogManager.getLogger(NexusApplication.class);
 
     public static void main(String[] args) {
 
