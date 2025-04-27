@@ -2,13 +2,13 @@ package app.session;
 
 import app.dao.model.user.AppUser;
 import jakarta.servlet.http.HttpSession;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 
 public class SessionUtil {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SessionUtil.class);
+    private static final Logger LOGGER = LogManager.getLogger(SessionUtil.class);
     private static final String ACTION_MSG = "ACTION_MSG";
     private static final String WARN_MSG = "WARN_MSG";
     private static final String ERROR_MSG = "ERROR_MSG";
@@ -65,10 +65,15 @@ public class SessionUtil {
     }
 
     public static void cleanViewedMsgs(HttpSession session) {
-        LOGGER.debug("Clearing ERROR/ACTION/WARN messages after viewed them");
-        session.removeAttribute(ERROR_MSG);
-        session.removeAttribute(WARN_MSG);
-        session.removeAttribute(ACTION_MSG);
+        if(session != null) {
+            LOGGER.info("Clearing ERROR/ACTION/WARN messages after viewed them");
+            session.removeAttribute(ERROR_MSG);
+            session.removeAttribute(WARN_MSG);
+            session.removeAttribute(ACTION_MSG);
+        }else {
+            LOGGER.warn("Session is null, cannot clear messages");
+        }
+
     }
 
 }

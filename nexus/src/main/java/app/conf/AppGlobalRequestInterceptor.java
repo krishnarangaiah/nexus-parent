@@ -1,22 +1,23 @@
 package app.conf;
 
+import app.dao.model.user.AppUser;
 import app.service.AppBeanContextService;
 import app.session.SessionUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.web.servlet.HandlerInterceptor;
-import org.springframework.web.servlet.ModelAndView;
-
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.web.servlet.ModelAndView;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 public class AppGlobalRequestInterceptor implements HandlerInterceptor {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AppGlobalRequestInterceptor.class);
+    private static final Logger LOGGER = LogManager.getLogger(AppGlobalRequestInterceptor.class);
     private static final String LOGIN_FORM = "/AppUser/LoginForm";
     private static final List<String> ALLOWED_URIS = Arrays.asList(
             "/AppUser/Login",
@@ -39,35 +40,36 @@ public class AppGlobalRequestInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-
-        // LOGGER.info("PreHandle SessionId: {}, RequestContextPath: {}, RequestURI: {}", request.getSession().getId(), request.getContextPath(), request.getRequestURI());
-
         HttpSession session = request.getSession();
+        AppUser sessionUser = SessionUtil.getSessionUser(session);
+
         if (ALLOWED_URIS.contains(request.getRequestURI())) {
             return true;
-        } else if ((null == SessionUtil.getSessionUser(session))
-                || (!session.getId().equals(SessionUtil.getSessionUser(session).getSessionId()))) {
+        } else if (sessionUser == null || !session.getId().equals(sessionUser.getSessionId())) {
             LOGGER.warn("No Session User found for sessionId: {}, redirecting to {}", session.getId(), LOGIN_FORM);
             response.sendRedirect(request.getContextPath() + LOGIN_FORM);
             return false;
         } else {
             return true;
         }
-        // return super.preHandle(request, response, handler);
     }
 
     @Override
-    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
-
-        LOGGER.debug("PostHandle SessionId: {}", request.getSession().getId());
-        LOGGER.debug("Session User: {}", SessionUtil.getSessionUser(request.getSession()));
-
-        if (null != modelAndView) {
-            Map<String, Object> x = modelAndView.getModel();
-            x.put("appProperty", appProperty);
-           // x.put("session", request.getSession());
+    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) {
+        if (modelAndView != null) {
+            Map<String, Object> model = modelAndView.getModel();
+            HttpSession session = request.getSession();
+            AppUser sessionUser = SessionUtil.getSessionUser(session);
+            LOGGER.info("User: {}", sessionUser);
+            model.put("session1", session);
+            model.put("sessionUser", sessionUser);
+            model.put("sessionId", session.getId());
+            model.put("errorMsg", SessionUtil.getErrorMsg(session));
+            model.put("actionMsg", SessionUtil.getActionMsg(session));
+            model.put("warnMsg", SessionUtil.getWarnMsg(session));
+            model.put("appProperty", appProperty);
+            model.put("servletContext", request.getServletContext());
         }
 
     }
-
 }
