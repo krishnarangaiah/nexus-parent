@@ -1,26 +1,34 @@
 package app;
 
-import app.conf.AppProperty;
+import app.websocket.WebsocketClient;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 
-@SpringBootApplication
+import javax.websocket.ContainerProvider;
+import javax.websocket.WebSocketContainer;
+import java.net.URI;
+import java.util.concurrent.CountDownLatch;
+
+
 public class NexusAgentApplication {
 
-
     private static final Logger LOGGER = LogManager.getLogger(NexusAgentApplication.class);
+    private static CountDownLatch latch;
 
     public static void main(String[] args) {
         LOGGER.info("Application Starting");
-        ConfigurableApplicationContext appContext = SpringApplication.run(AppConf.class, args);
-        LOGGER.info("-----------------------------------");
-        LOGGER.info("Application is Started successfully");
-        LOGGER.info("-----------------------------------");
-        AppProperty appProperty = appContext.getBean(AppProperty.class);
-        LOGGER.info("Application is started with {}: {}", appProperty.getClass().getName(), appProperty);
-
+        latch = new CountDownLatch(1);
+        try {
+            WebSocketContainer container = ContainerProvider.getWebSocketContainer();
+            String uri = "ws://localhost:9000/ws"; // Replace with your server URI
+            System.out.println("Connecting to " + uri);
+            container.connectToServer(WebsocketClient.class, URI.create(uri));
+            latch.await(); // Wait until session closed
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
