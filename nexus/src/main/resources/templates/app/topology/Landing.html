@@ -3,54 +3,40 @@
 <head>
     <header th:insert="layout/AppLayout.html :: header"></header>
     <style>
-        .custom-card {
-            font-size: 0.7rem;
-        }
-        .custom-border {
-            border-width: 0 1.2px 0 0 ; /* No top/bottom border, 10px left/right border */
-            border-style: solid;
-            border-image: linear-gradient(to bottom, yellow, #1e88e5, yellow) 1;
-            height: 100%; /* Ensure the div's height is fully covered */
-        }
 
-        #sideId {
-            visibility: hidden;
-            opacity: 0;
-            transform: translateX(100%);
-            transition: visibility 0s, opacity 0.5s ease, transform 0.5s ease;
-        }
+        body {
+             overflow-x: hidden;
+         }
 
-        #sideId.show {
-            visibility: visible;
-            opacity: 1;
-            transform: translateX(0);
-            transition-delay: 0s;
-        }
+         .custom-card {
+             font-size: 0.7rem;
+         }
+         .custom-border {
+             border-width: 0 1.2px 0 0 ; /* No top/bottom border, 10px left/right border */
+             border-style: solid;
+             border-image: linear-gradient(to bottom, yellow, #1e88e5, yellow) 1;
+             height: 100%; /* Ensure the div's height is fully covered */
+         }
 
-        /* Spinner styling */
-        .spinner {
-            border: 4px solid #f3f3f3; /* Light gray */
-            border-top: 4px solid #3498db; /* Blue */
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
+         #sideId {
+             visibility: hidden;
+             opacity: 0;
+             transform: translateX(100%);
+             transition: visibility 0s, opacity 0.2s ease, transform 0.2s ease;
+         }
 
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-            100% {
-                transform: rotate(360deg);
-            }
-        }
+         #sideId.show {
+             visibility: visible;
+             opacity: 1;
+             transform: translateX(0);
+             transition-delay: 0s;
+         }
 
-        /* Hide spinner when content is loaded */
-        #sideId.loaded .spinner {
-            display: none;
-        }
+        #sideId.hide {
+             visibility: hidden;
+             opacity: 0;
+                transform: translateX(100%);
+         }
 
     </style>
 </head>
@@ -380,7 +366,6 @@
         <div id="sideId" class="col-2 align-self-start">
             <div class="card w-100 custom-card text-center mb-1 text-decoration-none">
                 <div class="card-body">
-                    <div class="spinner"></div> <!-- Spinner -->
                     <div class="card-title text-success">
                         <h5 class="mb-0">Work in Progress</h5>
                     </div>
@@ -398,14 +383,9 @@
     $(document).ready(function () {
         $(".card").on("click", function () {
             $("#mainId").removeClass("col-12").addClass("col-10 custom-border");
-            $("#sideId").addClass("show").removeClass("loaded");
-
-            // Simulate loading completion after 3 seconds
-            setTimeout(function () {
-                $("#sideId").addClass("loaded");
-            }, 3000);
+            $("#sideId").addClass("show");
         });
-    });
+});
 </script>
 
 
