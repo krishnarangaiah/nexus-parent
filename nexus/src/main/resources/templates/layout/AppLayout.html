@@ -11,7 +11,7 @@
         <link th:href="@{/css/app.css}" rel="stylesheet"/>
 
         <script type="text/javascript" src="/webjars/jquery/3.5.1/jquery.min.js"></script>
-        <script type="text/javascript" src="/webjars/bootstrap/5.3.3/js/bootstrap.min.js"></script>
+        <script type="text/javascript" src="/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
         <script type="text/javascript" src="/webjars/d3js/5.16.0/d3.min.js"></script>
     </head>
 </div>
@@ -27,26 +27,25 @@
                     aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Link
+            <div class="collapse navbar-collapse justify-content-end" id="navbarSupportedContent">
+
+                <ul class="navbar-nav justify-content-end">
+
+                    <li th:if="${sessionUser != null}" class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            <span th:text="${sessionUser.userName}"></span>
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="#">Action</a></li>
+                            <li><a class="dropdown-item" href="/Admin/Landing">Admin</a></li>
                             <li><a class="dropdown-item" href="#">Another action</a></li>
-                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
                             <li><a class="dropdown-item" href="#">Something else here</a></li>
                         </ul>
                     </li>
-                </ul>
-                <ul class="navbar-nav justify-content-end">
-                    <li th:if="${sessionUser != null}" class="nav-item">
-                        <span class="nav-link" th:text="${sessionUser.userName}"></span>
-                    </li>
-                </ul>
-                <ul class="navbar-nav justify-content-end">
+
                     <li th:if="${sessionUser != null}" class="nav-item">
                         <a class="nav-link" href="/AppUser/Logout">Logout</a>
                     </li>
@@ -77,6 +76,25 @@
                 </div>
             </span>
         </center>
+    </div>
+
+    <div th:if="${breadcrumbs != null and !#lists.isEmpty(breadcrumbs)}">
+        <div class="d-flex footer-breadcrumb p-2 justify-content-end"
+             style="--bs-breadcrumb-divider: '>'; padding-top: 0.3em; padding-bottom: 0.5em;"
+             aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"
+                    th:each="breadcrumb : ${breadcrumbs}"
+                    th:classappend="${breadcrumb.url == null} ? 'active'"
+                    th:aria-current="${breadcrumb.url == null} ? 'page'">
+                    <a th:if="${breadcrumb.url != null}"
+                       th:href="${breadcrumb.url}"
+                       th:text="${breadcrumb.label}"></a>
+                    <span th:if="${breadcrumb.url == null}"
+                          th:text="${breadcrumb.label}"></span>
+                </li>
+            </ol>
+        </div>
     </div>
     <span th:text="${T(app.session.SessionUtil).cleanViewedMsgs(session1)}"></span>
     <script type="text/javascript" th:src="@{/js/app.js}"></script>

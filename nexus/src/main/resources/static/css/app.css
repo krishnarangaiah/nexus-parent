@@ -81,3 +81,13 @@ hr {
     background: linear-gradient(to right, yellow, #1e88e5, yellow);
     margin: 1rem auto;
 }
+
+.footer-breadcrumb {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1030; /* above most content */
+  background-color: #f8f9fa; /* light Bootstrap background */
+  border-top: 1px solid #dee2e6;
+}
