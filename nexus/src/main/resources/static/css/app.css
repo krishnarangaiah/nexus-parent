@@ -1,7 +1,7 @@
 /* Body */
 body {
     /* background: linear-gradient(135deg, #f5f5f5, #e0e0e0); /* Neutral background for contrast */
-    font-family: sans-serif;
+    font-family: trebuchet ms, sans-serif;
     font-size: 15px;
 }
 
@@ -38,12 +38,13 @@ body {
 }
 
 .custom-card .card-title h5 {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #2e7d32; /* Primary blue for the title */
+    font-family: trebuchet ms, sans-serif;
+    font-size: 1.1rem;
+    transition: color 0.3s ease;
 }
 
 .custom-card:hover h5 {
-    color: #ff5252; /* Bright red on hover for contrast */
+     color: #2e7d32; /* Primary blue for the title */
 }
 
 /* Buttons */
