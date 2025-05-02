@@ -3,6 +3,7 @@ body {
     /* background: linear-gradient(135deg, #f5f5f5, #e0e0e0); /* Neutral background for contrast */
     font-family: trebuchet ms, sans-serif;
     font-size: 15px;
+    overflow-y: scroll; /* Always show the vertical scrollbar */
 }
 
 /* Navbar */
@@ -91,3 +92,12 @@ hr {
   background-color: #f8f9fa; /* light Bootstrap background */
   border-top: 1px solid #dee2e6;
 }
+
+/*.table-sm th, .table-sm td, .table-sm tr {
+    border: 1px solid gray;
+}
+
+.table-sm {
+     border: 1px solid #90caf9; *//* Light blue border *//*
+     border-radius: 0.75rem;
+}*/

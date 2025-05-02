@@ -11,6 +11,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +35,8 @@ public class AppGlobalRequestInterceptor implements HandlerInterceptor {
             "/webjars/font-awesome/4.7.0/fonts/fontawesome-webfont.woff2",
             "/webjars/font-awesome/4.7.0/fonts/fontawesome-webfont.woff",
             "/webjars/font-awesome/4.7.0/fonts/fontawesome-webfont.ttf",
-            "/webjars/font-awesome/4.7.0/fonts/fontawesome-webfont.woff2"
+            "/webjars/font-awesome/4.7.0/fonts/fontawesome-webfont.woff2",
+            "/webjars/font-awesome/6.4.0/css/all.min.css"
     );
     private final AppProperty appProperty = AppBeanContextService.getBeanFromContext(AppProperty.class);
 
@@ -63,6 +65,15 @@ public class AppGlobalRequestInterceptor implements HandlerInterceptor {
             HttpSession session = request.getSession();
             AppUser sessionUser = SessionUtil.getSessionUser(session);
             LOGGER.info("User: {}", sessionUser);
+            List<Map<String, String>> breadcrumbs = (List<Map<String, String>>) model.get("breadcrumbs");
+            if (null != breadcrumbs && breadcrumbs.size() > 0) {
+                breadcrumbs.add(Map.of("label", "Home", "url", request.getContextPath() + "/"));
+            } else {
+                breadcrumbs = new ArrayList<>();
+            }
+            breadcrumbs.add(Map.of("label", "Home", "url", request.getContextPath() + "/"));
+            breadcrumbs.add(Map.of("label", "Back", "url", request.getHeader("referer")));
+
             model.put("session1", session);
             model.put("sessionUser", sessionUser);
             model.put("sessionId", session.getId());
@@ -71,6 +82,7 @@ public class AppGlobalRequestInterceptor implements HandlerInterceptor {
             model.put("warnMsg", SessionUtil.getWarnMsg(session));
             model.put("appProperty", appProperty);
             model.put("servletContext", request.getServletContext());
+            model.put("breadcrumbs", breadcrumbs);
         }
 
     }

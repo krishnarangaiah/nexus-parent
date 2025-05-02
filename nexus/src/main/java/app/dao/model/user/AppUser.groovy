@@ -21,6 +21,8 @@ class AppUser implements Serializable {
     @Column(nullable = false)
     String password
     @Column(nullable = false)
+    String screenName
+    @Column(nullable = false)
     Role role
     @Column(nullable = false)
     String email

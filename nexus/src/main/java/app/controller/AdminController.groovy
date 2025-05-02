@@ -6,9 +6,12 @@ import jakarta.servlet.http.HttpServletRequest
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 
 @Controller
 class AdminController {
@@ -21,15 +24,31 @@ class AdminController {
     private UserService userService
 
     @GetMapping("/Admin/Landing")
-    public String userLanding(Model model, HttpServletRequest request) {
-
-        List<Map<String, String>> breadcrumbs = new ArrayList<>()
-        breadcrumbs.add(Map.of("label", "Home", "url", "/"))
-        breadcrumbs.add(Map.of("label", "Back", "url", request.getHeader("referer")))
-
-        model.addAttribute("breadcrumbs", breadcrumbs);
-
+    String userLanding(Model model, HttpServletRequest request) {
         return "app/admin/Landing.html";
+    }
+
+    @GetMapping("/Admin/ManageTopologyComponent")
+    String manageEnvForm(Model model, HttpServletRequest request) {
+        return "app/admin/ManageTopologyComponent.html";
+    }
+
+    @PostMapping("/Admin/UpdateTopologyComponent")
+    ResponseEntity<?> updateRecord(@RequestBody Map<String, String> payload) {
+        String id = payload.get("id");
+        String field = payload.get("field");
+        String value = payload.get("value");
+
+        // Update the record in the database (pseudo-code)
+        boolean success = true; // Replace with actual update logic
+        LOGGER.info("Updating record with ID: " + id + ", field: " + field + ", value: " + value);
+
+        if (success) {
+
+            return ResponseEntity.ok("Record updated successfully");
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update record");
+        }
     }
 
 }
