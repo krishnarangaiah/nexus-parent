@@ -53,7 +53,7 @@ public class AppGlobalRequestInterceptor implements HandlerInterceptor {
             response.sendRedirect(request.getContextPath() + LOGIN_FORM);
             return false;
         } else {
-            LOGGER.info("Session User: {} with sessionId: {}", sessionUser, session.getId());
+            LOGGER.debug("Session User: {} with sessionId: {}", sessionUser, session.getId());
             return true;
         }
     }
@@ -64,7 +64,7 @@ public class AppGlobalRequestInterceptor implements HandlerInterceptor {
             Map<String, Object> model = modelAndView.getModel();
             HttpSession session = request.getSession();
             AppUser sessionUser = SessionUtil.getSessionUser(session);
-            LOGGER.info("User: {}", sessionUser);
+            LOGGER.debug("User: {}", sessionUser);
             List<Map<String, String>> breadcrumbs = (List<Map<String, String>>) model.get("breadcrumbs");
             if (null != breadcrumbs && breadcrumbs.size() > 0) {
                 breadcrumbs.add(Map.of("label", "Home", "url", request.getContextPath() + "/"));
@@ -72,7 +72,9 @@ public class AppGlobalRequestInterceptor implements HandlerInterceptor {
                 breadcrumbs = new ArrayList<>();
             }
             breadcrumbs.add(Map.of("label", "Home", "url", request.getContextPath() + "/"));
-            breadcrumbs.add(Map.of("label", "Back", "url", request.getHeader("referer")));
+            if (null != request.getHeader("referer")) {
+                breadcrumbs.add(Map.of("label", "Back", "url", request.getHeader("referer")));
+            }
 
             model.put("session1", session);
             model.put("sessionUser", sessionUser);

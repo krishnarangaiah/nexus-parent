@@ -66,7 +66,7 @@ public class SessionUtil {
 
     public static void cleanViewedMsgs(HttpSession session) {
         if(session != null) {
-            LOGGER.info("Clearing ERROR/ACTION/WARN messages after viewed them");
+            LOGGER.debug("Clearing ERROR/ACTION/WARN messages after viewed them");
             session.removeAttribute(ERROR_MSG);
             session.removeAttribute(WARN_MSG);
             session.removeAttribute(ACTION_MSG);
