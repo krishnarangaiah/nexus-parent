@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <header th:insert="layout/AppLayout.html :: header"></header>
+    <style>
+        table.table-sm {
+            table-layout: fixed; /* Fix the table layout */
+            width: 100%; /* Ensure the table takes up the full width */
+        }
+
+        table.table-sm th, table.table-sm td {
+            word-wrap: break-word; /* Prevent content overflow */
+            overflow: hidden; /* Hide overflowing content */
+            text-overflow: ellipsis; /* Add ellipsis for overflowing text */
+            white-space: nowrap; /* Prevent text wrapping */
+        }
+    </style>
+</head>
+<body>
+<div th:insert="layout/AppLayout.html :: nav"></div>
+
+<div class="container-fluid h-100">
+
+    <div class="row justify-content-center align-items-center w-100 mt-4">
+        <div class="col-6">
+            <div class="text-dark text-center mb-3">
+                <h5 class="mb-0 fw-semibold">Component List | <a href="#" class="ms-5"><i class="fa-solid fa-plus"></i></a></h5>
+            </div>
+            <hr/>
+
+            <table class="table table-sm text-center">
+                <thead>
+                <th>Environment Name</th>
+                <th>Description</th>
+                </thead>
+                <tbody>
+                <tr>
+                    <td class="editable" data-id="1" data-field="name">DEV</td>
+                    <td class="editable" data-id="1" data-field="description">Description 1</td>
+                </tr>
+                <tr>
+                    <td class="editable" data-id="2" data-field="name">TEST</td>
+                    <td class="editable" data-id="2" data-field="description">Description 2</td>
+                </tr>
+                <tr>
+                    <td class="editable" data-id="3" data-field="name">PROD</td>
+                    <td class="editable" data-id="3" data-field="description">Description 3</td>
+                </tr>
+                <tr>
+                    <td class="editable" data-id="4" data-field="name">UAT</td>
+                    <td class="editable" data-id="4" data-field="description">Description 4</td>
+                </tr>
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+
+</div>
+
+<script>
+    $(document).ready(function () {
+        // Add a new row with empty fields on clicking the plus icon
+        $('.fa-plus').on('click', function (e) {
+            e.preventDefault();
+            const newRow = `
+                <tr>
+                    <td class="editable" data-id="new" data-field="name"></td>
+                    <td class="editable" data-id="new" data-field="description"></td>
+                </tr>
+            `;
+            $('table tbody').append(newRow);
+        });
+
+        // Make the cell editable on click
+        $(document).on('click', '.editable', function () {
+            const $cell = $(this);
+            if (!$cell.hasClass('editing')) {
+                $cell.addClass('editing');
+                const currentValue = $cell.text();
+                $cell.html(`<input type="text" class="form-control" value="${currentValue}">`);
+                $cell.find('input').focus();
+            }
+        });
+
+        // Save the data on blur
+        $(document).on('blur', '.editable input', function () {
+            const $input = $(this);
+            const $cell = $input.closest('.editable');
+            const newValue = $input.val();
+            const recordId = $cell.data('id');
+            const fieldName = $cell.data('field');
+
+            // Remove editing state and update the cell text
+            $cell.removeClass('editing').text(newValue);
+
+            // Save the updated value to the database via AJAX
+
+                $.ajax({
+                    url: '/Admin/UpdateTopologyComponent', // Replace with your API endpoint
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        id: recordId,
+                        field: fieldName,
+                        value: newValue
+                    }),
+                    success: function (response) {
+                        console.log('Record updated successfully:', response);
+                        displayActionMsg(response);
+                    },
+                    error: function (error) {
+                        console.error('Error updating record:', error);
+                        displayErrorMsg('Error updating record:' + error);
+                    }
+                });
+
+        });
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <header th:insert="layout/AppLayout.html :: header"></header>
+    <style>
+
+        body {
+             overflow-x: hidden;
+         }
+
+         h5{
+            font-family: trebuchet ms, sans-serif;
+            font-size: 1.1rem;
+            transition: color 0.3s ease;
+         }
+
+         .custom-card {
+             font-size: 0.7rem;
+             font-family: sans-serif;
+         }
+         .custom-border {
+             border-width: 0 1.2px 0 0 ; /* No top/bottom border, 10px left/right border */
+             border-style: solid;
+             border-image: linear-gradient(to bottom, yellow, #1e88e5, yellow) 1;
+             height: 100%; /* Ensure the div's height is fully covered */
+         }
+
+         #sideId {
+             visibility: hidden;
+             opacity: 0;
+             transform: translateX(100%);
+             transition: visibility 0s, opacity 0.2s ease, transform 0.2s ease;
+         }
+
+         #sideId.show {
+             visibility: visible;
+             opacity: 1;
+             transform: translateX(0);
+             transition-delay: 0s;
+         }
+
+        #sideId.hide {
+             visibility: hidden;
+             opacity: 0;
+                transform: translateX(100%);
+         }
+
+    </style>
+</head>
+<body>
+<div th:insert="layout/AppLayout.html :: nav"></div>
+
+<div class="container-fluid h-100">
+
+    <div class="row justify-content-center align-items-center w-100">
+
+        <div id="mainId" class="col-12 p-1">
+
+            <div class="row justify-content-center align-items-center w-100">
+                <div class="col-3 d-flex justify-content-center">
+
+                    <div
+                            class="card w-100 custom-card text-center mb-3 text-decoration-none">
+                        <div class="card-body">
+                            <div class="card-title text-dark">
+                                <h5 class="mb-0 fw-semibold">DRS</h5>
+                            </div>
+                            <hr/>
+                            <table class="table table-sm">
+                                <tbody>
+                                <tr scope="row">
+                                    <td>DEV</td>
+                                    <td><span class="badge text-bg-success">ON</span></td>
+                                </tr>
+                                <tr scope="row">
+                                    <td>SIT</td>
+                                    <td><span class="badge text-bg-success">ON</span></td>
+                                </tr>
+                                <tr scope="row">
+                                    <td>UAT</td>
+                                    <td><span class="badge text-bg-danger">OFF</span></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="col-3 d-flex justify-content-center">
+
+                    <div
+                            class="card w-100 custom-card text-center mb-3 text-decoration-none">
+                        <div class="card-body">
+                            <div class="card-title text-dark">
+                                <h5 class="mb-0 fw-semibold">Refdata Service</h5>
+                            </div>
+                            <hr/>
+                            <table class="table table-sm">
+                                <tbody>
+                                <tr scope="row">
+                                    <td>DEV</td>
+                                    <td><span class="badge text-bg-success">ON</span></td>
+                                </tr>
+                                <tr scope="row">
+                                    <td>SIT</td>
+                                    <td><span class="badge text-bg-success">ON</span></td>
+                                </tr>
+                                <tr scope="row">
+                                    <td>UAT</td>
+                                    <td><span class="badge text-bg-danger">OFF</span></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="col-3 d-flex justify-content-center">
+
+                    <div
+                            class="card w-100 custom-card text-center mb-3 text-decoration-none">
+                        <div class="card-body">
+                            <div class="card-title text-dark">
+                                <h5 class="mb-0 fw-semibold">Instrument Service</h5>
+                            </div>
+                            <hr/>
+                            <table class="table table-sm">
+                                <tbody>
+                                <tr scope="row">
+                                    <td>DEV</td>
+                                    <td><span class="badge text-bg-success">ON</span></td>
+                                </tr>
+                                <tr scope="row">
+                                    <td>SIT</td>
+                                    <td><span class="badge text-bg-success">ON</span></td>
+                                </tr>
+                                <tr scope="row">
+                                    <td>UAT</td>
+                                    <td><span class="badge text-bg-danger">OFF</span></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="col-3 d-flex justify-content-center">
+
+                    <div
+                            class="card w-100 custom-card text-center mb-3 text-decoration-none">
+                        <div class="card-body">
+                            <div class="card-title text-dark">
+                                <h5 class="mb-0 fw-semibold">Rushmore</h5>
+                            </div>
+                            <hr/>
+                            <table class="table table-sm">
+                                <tbody>
+                                <tr scope="row">
+                                    <td>DEV</td>
+                                    <td><span class="badge text-bg-success">ON</span></td>
+                                </tr>
+                                <tr scope="row">
+                                    <td>SIT</td>
+                                    <td><span class="badge text-bg-success">ON</span></td>
+                                </tr>
+                                <tr scope="row">
+                                    <td>UAT</td>
+                                    <td><span class="badge text-bg-danger">OFF</span></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="row justify-content-center align-items-center w-100">
+                <div class="col-3 d-flex justify-content-center">
+
+                    <div
+                            class="card w-100 custom-card text-center mb-3 text-decoration-none">
+                        <div class="card-body">
+                            <div class="card-title text-dark">
+                                <h5 class="mb-0 fw-semibold">DRS</h5>
+                            </div>
+                            <hr/>
+                            <table class="table table-sm">
+                                <tbody>
+                                <tr scope="row">
+                                    <td>DEV</td>
+                                    <td><span class="badge text-bg-success">ON</span></td>
+                                </tr>
+                                <tr scope="row">
+                                    <td>SIT</td>
+                                    <td><span class="badge text-bg-success">ON</span></td>
+                                </tr>
+                                <tr scope="row">
+                                    <td>UAT</td>
+                                    <td><span class="badge text-bg-danger">OFF</span></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="col-3 d-flex justify-content-center">
+
+                    <div
+                            class="card w-100 custom-card text-center mb-3 text-decoration-none">
+                        <div class="card-body">
+                            <div class="card-title text-dark">
+                                <h5 class="mb-0 fw-semibold">DRS</h5>
+                            </div>
+                            <hr/>
+                            <table class="table table-sm">
+                                <tbody>
+                                <tr scope="row">
+                                    <td>DEV</td>
+                                    <td><span class="badge text-bg-success">ON</span></td>
+                                </tr>
+                                <tr scope="row">
+                                    <td>SIT</td>
+                                    <td><span class="badge text-bg-success">ON</span></td>
+                                </tr>
+                                <tr scope="row">
+                                    <td>UAT</td>
+                                    <td><span class="badge text-bg-danger">OFF</span></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="col-3 d-flex justify-content-center">
+
+                    <div
+                            class="card w-100 custom-card text-center mb-3 text-decoration-none">
+                        <div class="card-body">
+                            <div class="card-title text-dark">
+                                <h5 class="mb-0 fw-semibold">DRS</h5>
+                            </div>
+                            <hr/>
+                            <table class="table table-sm">
+                                <tbody>
+                                <tr scope="row">
+                                    <td>DEV</td>
+                                    <td><span class="badge text-bg-success">ON</span></td>
+                                </tr>
+                                <tr scope="row">
+                                    <td>SIT</td>
+                                    <td><span class="badge text-bg-success">ON</span></td>
+                                </tr>
+                                <tr scope="row">
+                                    <td>UAT</td>
+                                    <td><span class="badge text-bg-danger">OFF</span></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="col-3 d-flex justify-content-center">
+
+                    <div
+                            class="card w-100 custom-card text-center mb-3 text-decoration-none">
+                        <div class="card-body">
+                            <div class="card-title text-dark">
+                                <h5 class="mb-0 fw-semibold">DRS</h5>
+                            </div>
+                            <hr/>
+                            <table class="table table-sm">
+                                <tbody>
+                                <tr scope="row">
+                                    <td>DEV</td>
+                                    <td><span class="badge text-bg-success">ON</span></td>
+                                </tr>
+                                <tr scope="row">
+                                    <td>SIT</td>
+                                    <td><span class="badge text-bg-success">ON</span></td>
+                                </tr>
+                                <tr scope="row">
+                                    <td>UAT</td>
+                                    <td><span class="badge text-bg-danger">OFF</span></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="row justify-content-center align-items-center w-100">
+                <div class="col-3 d-flex justify-content-center">
+
+                    <div
+                            class="card w-100 custom-card text-center mb-3 text-decoration-none">
+                        <div class="card-body">
+                            <div class="card-title text-dark">
+                                <h5 class="mb-0 fw-semibold">DRS</h5>
+                            </div>
+                            <hr/>
+                            <table class="table table-sm">
+                                <tbody>
+                                <tr scope="row">
+                                    <td>DEV</td>
+                                    <td><span class="badge text-bg-success">ON</span></td>
+                                </tr>
+                                <tr scope="row">
+                                    <td>SIT</td>
+                                    <td><span class="badge text-bg-success">ON</span></td>
+                                </tr>
+                                <tr scope="row">
+                                    <td>UAT</td>
+                                    <td><span class="badge text-bg-danger">OFF</span></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="col-3 d-flex justify-content-center">
+
+                    <div
+                            class="card w-100 custom-card text-center mb-3 text-decoration-none">
+                        <div class="card-body">
+                            <div class="card-title text-dark">
+                                <h5 class="mb-0 fw-semibold">DRS</h5>
+                            </div>
+                            <hr/>
+                            <table class="table table-sm">
+                                <tbody>
+                                <tr scope="row">
+                                    <td>DEV</td>
+                                    <td><span class="badge text-bg-success">ON</span></td>
+                                </tr>
+                                <tr scope="row">
+                                    <td>SIT</td>
+                                    <td><span class="badge text-bg-success">ON</span></td>
+                                </tr>
+                                <tr scope="row">
+                                    <td>UAT</td>
+                                    <td><span class="badge text-bg-danger">OFF</span></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="col-3 d-flex justify-content-center">
+
+                    <div
+                            class="card w-100 custom-card text-center mb-3 text-decoration-none">
+                        <div class="card-body">
+                            <div class="card-title text-dark">
+                                <h5 class="mb-0 fw-semibold">DRS</h5>
+                            </div>
+                            <hr/>
+                            <table class="table table-sm">
+                                <tbody>
+                                <tr scope="row">
+                                    <td>DEV</td>
+                                    <td><span class="badge text-bg-success">ON</span></td>
+                                </tr>
+                                <tr scope="row">
+                                    <td>SIT</td>
+                                    <td><span class="badge text-bg-success">ON</span></td>
+                                </tr>
+                                <tr scope="row">
+                                    <td>UAT</td>
+                                    <td><span class="badge text-bg-danger">OFF</span></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="col-3 d-flex justify-content-center">
+
+                    <div
+                            class="card w-100 custom-card text-center mb-3 text-decoration-none">
+                        <div class="card-body">
+                            <div class="card-title text-dark">
+                                <h5 class="mb-0 fw-semibold">DRS</h5>
+                            </div>
+                            <hr/>
+                            <table class="table table-sm">
+                                <tbody>
+                                <tr scope="row">
+                                    <td>DEV</td>
+                                    <td><span class="badge text-bg-success">ON</span></td>
+                                </tr>
+                                <tr scope="row">
+                                    <td>SIT</td>
+                                    <td><span class="badge text-bg-success">ON</span></td>
+                                </tr>
+                                <tr scope="row">
+                                    <td>UAT</td>
+                                    <td><span class="badge text-bg-danger">OFF</span></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+
+        </div>
+        <div id="sideId" class="col-3 align-self-start">
+            <h5 class="fw-semibold text-center">Details</h5>
+            <hr/>
+            <table class="table table-sm text-center">
+                <tbody>
+                <tr scope="row">
+                    <td>Started</td>
+                    <td>2025-05-24</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>
+
+
+</div>
+
+<script>
+    $(document).ready(function () {
+        $(".card").on("click", function () {
+            $("#mainId").removeClass("col-12").addClass("col-9 custom-border");
+            $("#sideId").addClass("show");
+        });
+});
+</script>
+
+
+</body>
+</html>

@@ -48,12 +48,14 @@ public class UserController {
             systemAdmin.setId(-1L);
             systemAdmin.setUserName(appAdminUser);
             systemAdmin.setPassword(appAdminPassword);
+            systemAdmin.setScreenName("Krishna");
+            systemAdmin.setRole(Role.ADMIN);
             systemAdmin.setSessionId(session.getId());
             SessionUtil.setSessionUser(session, systemAdmin);
             authenticated = true;
 
-            LOGGER.info("AppUser {} Authenticated successfully", userName);
-            SessionUtil.setActionMsg(session, "AppUser " + userName + " logged in as System AppUser");
+            LOGGER.info("{} Authenticated successfully", systemAdmin.getScreenName());
+            SessionUtil.setActionMsg(session,  systemAdmin.getScreenName() + " logged in as " + systemAdmin.getRole());
             return new RedirectView("/");
 
         } else {
@@ -66,10 +68,11 @@ public class UserController {
                         AppUser appUser = appUsers.get(0);
                         if (appUser.getPassword().equals(password)) {
                             appUser.setSessionId(session.getId());
-                            LOGGER.info("AppUser {} Authenticated successfully", userName);
+                            LOGGER.info("{} Authenticated successfully", userName);
+                            SessionUtil.setActionMsg(session,  appUser.getScreenName() + " logged in as " + appUser.getRole());
                             return new RedirectView("/");
                         } else {
-                            SessionUtil.setErrorMsg(session, "AppUser " + userName + " is not recognized");
+                            SessionUtil.setErrorMsg(session, "User " + appUser.getScreenName() + " is not recognized");
                             return new RedirectView("/AppUser/LoginForm");
                         }
                     } else {
