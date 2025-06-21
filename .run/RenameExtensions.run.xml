@@ -2,7 +2,7 @@
   <configuration default="false" name="RenameExtensions" type="Application" factoryName="Application" nameIsGenerated="true">
     <option name="MAIN_CLASS_NAME" value="app.util.RenameExtensions" />
     <module name="nexus" />
-    <option name="PROGRAM_PARAMETERS" value="C:\Users\krish\Documents\nexus change" />
+    <option name="PROGRAM_PARAMETERS" value="C:\Users\krish\OneDrive\Documents\nexus change" />
     <extension name="coverage">
       <pattern>
         <option name="PATTERN" value="app.util.*" />

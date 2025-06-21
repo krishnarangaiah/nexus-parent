@@ -1,6 +1,8 @@
 package app.controller
 
 import app.conf.AppProperty
+import app.dao.model.component.RatesComponent
+import app.dao.service.RatesComponentService
 import app.dao.service.UserService
 import jakarta.servlet.http.HttpServletRequest
 import org.apache.logging.log4j.LogManager
@@ -12,6 +14,7 @@ import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.thymeleaf.spring6.view.ThymeleafViewResolver
 
 @Controller
 class AdminController {
@@ -23,32 +26,10 @@ class AdminController {
     @Autowired
     private UserService userService
 
+
     @GetMapping("/Admin/Landing")
     String userLanding(Model model, HttpServletRequest request) {
         return "app/admin/Landing.html";
-    }
-
-    @GetMapping("/Admin/ManageTopologyComponent")
-    String manageEnvForm(Model model, HttpServletRequest request) {
-        return "app/admin/ManageTopologyComponent.html";
-    }
-
-    @PostMapping("/Admin/UpdateTopologyComponent")
-    ResponseEntity<?> updateRecord(@RequestBody Map<String, String> payload) {
-        String id = payload.get("id");
-        String field = payload.get("field");
-        String value = payload.get("value");
-
-        // Update the record in the database (pseudo-code)
-        boolean success = true; // Replace with actual update logic
-        LOGGER.info("Updating record with ID: " + id + ", field: " + field + ", value: " + value);
-
-        if (success) {
-
-            return ResponseEntity.ok("Record updated successfully");
-        } else {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update record");
-        }
     }
 
 }
