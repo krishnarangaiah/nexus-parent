@@ -10,59 +10,143 @@
 <div th:replace="layout/AppLayout.html :: sidebar"></div>
 
 <div class="main-content">
-    <div class="container-fluid">
-        <div class="row justify-content-center align-items-center w-100 mb-4">
-            <div class="col-auto d-flex justify-content-start p-0">
-                <div class="row justify-content-center align-items-center w-100">
-                    <div class="col-3 d-flex justify-content-center">
+    <div class="container-fluid py-4">
+        <!-- Dashboard header -->
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <div>
+                <h2 class="mb-0">Rushmore Dashboard</h2>
+                <small class="text-muted">Overview of system health</small>
+            </div>
+            <div>
+                <button class="btn btn-sm btn-outline-secondary">Refresh</button>
+                <button class="btn btn-sm btn-primary">Create</button>
+            </div>
+        </div>
 
-                        <a href="/Rates/Component/List"
-                           class="card w-100 custom-card text-center mb-3 text-decoration-none">
-                            <div class="card-body">
-                                <div class="card-title text-dark">
-                                    <h5 class="mb-0 fw-semibold">Rates Component Management</h5>
-                                </div>
-                                <hr/>
-                                <p class="card-text">Managing the Rates Component</p>
-                            </div>
-                        </a>
+        <!-- Dashboard grid -->
+        <div class="dashboard-grid">
+            <!-- KPI Cards (4 x 3 cols) -->
+            <div class="custom-card kpi-card d-flex align-items-center">
 
-                    </div>
-                    <div class="col-3 d-flex justify-content-center">
-
-                        <a href="/Autosys/Landing" class="card w-100 custom-card text-center mb-3 text-decoration-none">
-                            <div class="card-body">
-                                <div class="card-title fw- text-dark">
-                                    <h5 class="mb-0 fw-semibold">Rates Autosys Analysis</h5>
-                                </div>
-                                <hr/>
-                                <p class="card-text">Analyze the Autosys definitions</p>
-                            </div>
-                        </a>
-
-                    </div>
+                <div class="stat-icon">
+                    <i class="bi bi-pc-display-horizontal"></i>
                 </div>
-
-                <div class="row justify-content-center align-items-center w-100">
-                    <div class="col-3 d-flex justify-content-center">
-
-                        <a href="/RatesComponent/Landing" class="card w-100 custom-card text-center mb-3 text-decoration-none">
-                            <div class="card-body">
-                                <div class="card-title text-dark">
-                                    <h5 class="mb-0 fw-semibold">Rates Component Monitoring</h5>
-                                </div>
-                                <hr/>
-                                <p class="card-text">2FSN Rates Component Monitoring</p>
-                            </div>
-                        </a>
-
-                    </div>
+                <div>
+                    <div class="stat-value">12</div>
+                    <div class="stat-label">Active Agents</div>
                 </div>
 
             </div>
 
+            <div class="custom-card kpi-card d-flex align-items-center">
+                <div class="stat-icon">
+                    <i class="bi bi-diagram-3"></i>
+                </div>
+                <div>
+                    <div class="stat-value">9</div>
+                    <div class="stat-label">Active Graph Processors</div>
+                </div>
+            </div>
 
-        </div>
+            <div class="custom-card kpi-card d-flex align-items-center">
+                <div class="stat-icon">
+                    <i class="bi bi-dash-circle"></i>
+                </div>
+                <div>
+                    <div class="stat-value">12</div>
+                    <div class="stat-label">Incidents (24h)</div>
+                </div>
+            </div>
+
+            <div class="custom-card kpi-card d-flex align-items-center">
+                <div class="stat-icon">
+                    <i class="bi bi-clock-history"></i>
+                </div>
+                <div>
+                    <div class="stat-value">99.98%</div>
+                    <div class="stat-label">Uptime (30d)</div>
+                </div>
+            </div>
+
+            <!-- Large chart area -->
+            <div class="custom-card chart-card">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h5 class="mb-0">Traffic (last 7 days)</h5>
+                    <small class="text-muted">Real-time</small>
+                </div>
+                <!-- D3 target: renderer will fill this -->
+                <div id="dashboard-chart" style="width:100%; height:220px;"></div>
+            </div>
+
+            <!-- Right side column: recent activity + table -->
+            <div class="side-column">
+                <div class="custom-card p-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="mb-0">Recent Activity</h6>
+                        <small class="text-muted">Now</small>
+                    </div>
+                    <ul class="activity-list mt-2">
+                        <li class="activity-item">
+                            <div><i class="bi bi-person-circle" style="font-size:1.25rem;color:#0d6efd;"></i></div>
+                            <div>
+                                <div><strong>John Doe</strong> deployed <span class="text-muted">service-a</span></div>
+                                <small class="text-muted">5 minutes ago</small>
+                            </div>
+                        </li>
+                        <li class="activity-item">
+                            <div><i class="bi bi-exclamation-circle" style="font-size:1.25rem;color:#dc3545;"></i></div>
+                            <div>
+                                <div>Incident <strong>#INC-1024</strong> opened</div>
+                                <small class="text-muted">12 minutes ago</small>
+                            </div>
+                        </li>
+                        <li class="activity-item">
+                            <div><i class="bi bi-gear-fill" style="font-size:1.25rem;color:#198754;"></i></div>
+                            <div>
+                                <div>Auto-scaling adjusted for <strong>db-cluster</strong></div>
+                                <small class="text-muted">1 hour ago</small>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="custom-card p-0">
+                    <div class="p-3 d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">Recent Deploys</h6>
+                        <small class="text-muted">24h</small>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table mb-0 recent-table">
+                            <thead class="table-light">
+                            <tr>
+                                <th>Service</th>
+                                <th>Version</th>
+                                <th>Status</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td>service-a</td>
+                                <td>v1.4.2</td>
+                                <td><span class="badge bg-success">Success</span></td>
+                            </tr>
+                            <tr>
+                                <td>auth</td>
+                                <td>v2.0.0</td>
+                                <td><span class="badge bg-warning text-dark">Partial</span></td>
+                            </tr>
+                            <tr>
+                                <td>worker</td>
+                                <td>v1.1.0</td>
+                                <td><span class="badge bg-success">Success</span></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div> <!-- end dashboard-grid -->
     </div>
 </div>
 
