@@ -147,18 +147,33 @@ public class NexusAgentApp {
         Runnable metricsTask = () -> {
             try {
                 // Collect metrics using shared class (nexus-common)
-                String metricsJson = JvmMetricsCollector.collectMetrics();
-                if (metricsJson != null && !metricsJson.isEmpty()) {
-                    // send via STOMP (server-side mapping should accept /app/metrics)
-                    try {
-                        stompSession.send("/app/metrics", metricsJson);
-                        System.out.println(Instant.now() + " Sent metrics payload");
-                    } catch (Exception e) {
-                        // fallback to raw websocket if STOMP send fails
+                String baseMetricsJson = JvmMetricsCollector.collectMetrics(); // e.g. {"threads":..,"heapUsed":..,"heapMax":..}
+                if (baseMetricsJson != null && !baseMetricsJson.isEmpty()) {
+                    // construct wrapped payload including agentId and timestamp so server maps to Metrics DTO
+                    long ts = Instant.now().toEpochMilli();
+                    // baseMetricsJson is expected to be an object JSON. Inject agentId and timestamp fields.
+                    String payload;
+                    if (baseMetricsJson.trim().startsWith("{") && baseMetricsJson.trim().endsWith("}")) {
+                        payload = baseMetricsJson.trim();
+                        // insert additional fields before final }
+                        payload = payload.substring(0, payload.length() - 1)
+                                + ",\"agentId\":\"" + escapeJson(agentId) + "\",\"timestamp\":" + ts + "}";
+                    } else {
+                        // fallback: build minimal JSON
+                        payload = "{\"agentId\":\"" + escapeJson(agentId) + "\",\"timestamp\":" + ts + ",\"threads\":0,\"heapUsed\":0,\"heapMax\":0}";
+                    }
+
+                    if (payload != null && !payload.isEmpty()) {
                         try {
-                            sendUsingReflection(wsClient, metricsJson);
-                        } catch (Exception inner) {
-                            System.err.println("Failed to send metrics: " + inner.getMessage());
+                            stompSession.send("/app/metrics", payload);
+                            System.out.println(Instant.now() + " Sent metrics payload: " + payload);
+                        } catch (Exception e) {
+                            // fallback to raw websocket if STOMP send fails
+                            try {
+                                sendUsingReflection(wsClient, payload);
+                            } catch (Exception inner) {
+                                System.err.println("Failed to send metrics: " + inner.getMessage());
+                            }
                         }
                     }
                 }
@@ -193,6 +208,10 @@ public class NexusAgentApp {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
+    }
+
+    private static String escapeJson(String s) {
+        return s == null ? "" : s.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 
     // Helper: attempt to send payload using reflection on the client instance.

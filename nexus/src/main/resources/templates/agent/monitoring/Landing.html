@@ -56,6 +56,12 @@
                             </div>
                             <div class="text-end">
                                 <div>
+                                    <!-- Status badge (will be updated by websocket events). ID uses agentId -->
+                                    <span th:id="'agent-status-' + ${agent.agentId}"
+                                          th:text="${agent.status}"
+                                          class="badge"
+                                          th:classappend="${agent.status == 'ACTIVE'} ? ' bg-success' : ' bg-secondary'">STATUS</span>
+
                                     <a th:href="@{/Monitoring/Agent/Edit/{id}(id=${agent.id})}" class="btn btn-sm btn-outline-secondary me-1">Edit</a>
                                     <form th:action="@{/Monitoring/Agent/Delete/{id}(id=${agent.id})}" method="post" style="display:inline;">
                                         <div th:if="${_csrf != null}">
@@ -86,6 +92,24 @@
     </div>
 </div>
 
-<!-- Inline wrapping script removed; app.js now exposes and calls wrapCardsWithAnchors -->
+<!-- replaced: moved websocket/STOMP code into /js/appWebsocket.js -->
+<script type="text/javascript">
+    // initialize the websocket client for this page
+    (function(){
+        try {
+            // default endpoint path used across app; override if needed
+            var endpointPath = '/ws';
+            // init with default options; appWebsocket exposes init()
+            if (window.AppWebsocket && typeof window.AppWebsocket.init === 'function') {
+                window.AppWebsocket.init({ endpointPath: endpointPath, topic: '/topic/agents/status' });
+            } else {
+                console.warn('AppWebsocket module not loaded; live updates disabled');
+            }
+        } catch (e) {
+            console.error('Failed initializing websocket client', e);
+        }
+    })();
+</script>
+
 </body>
 </html>

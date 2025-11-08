@@ -182,6 +182,33 @@
             <version>1.11.3</version>
         </dependency>
 
+        <!-- sockjs-client: keep as-is (requires debug 3.x) -->
+        <dependency>
+            <groupId>org.webjars.npm</groupId>
+            <artifactId>sockjs-client</artifactId>
+            <version>1.5.1</version>
+        </dependency>
+
+        <!-- stompjs: exclude its transitive 'debug' to avoid conflicting ranges -->
+        <dependency>
+            <groupId>org.webjars.npm</groupId>
+            <artifactId>stompjs</artifactId>
+            <version>2.3.3</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.webjars.npm</groupId>
+                    <artifactId>debug</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- Add a single explicit debug webjar version that satisfies sockjs-client (3.2.6) -->
+        <dependency>
+            <groupId>org.webjars.npm</groupId>
+            <artifactId>debug</artifactId>
+            <version>3.2.6</version>
+        </dependency>
+
         <!-- AI and NLP -->
         <dependency>
             <groupId>nz.ac.waikato.cms.weka</groupId>
