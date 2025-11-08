@@ -4,6 +4,7 @@ import app.dao.model.user.AppUser;
 import jakarta.servlet.http.HttpSession;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import java.util.Map;
 
 
 public class SessionUtil {
@@ -74,6 +75,58 @@ public class SessionUtil {
             LOGGER.warn("Session is null, cannot clear messages");
         }
 
+    }
+
+    // ----------------------------------------------------------------
+    // Map-based overloads to support Thymeleaf session maps (e.g. WebEngineContext$SessionAttributeMap)
+    // These allow templates to call T(app.session.SessionUtil).getErrorMsg(session) where session is a map.
+    // ----------------------------------------------------------------
+
+    public static String getErrorMsg(Map<?, ?> sessionMap) {
+        if (sessionMap == null) return null;
+        Object v = sessionMap.get(ERROR_MSG);
+        return v != null ? v.toString() : null;
+    }
+
+    public static String getWarnMsg(Map<?, ?> sessionMap) {
+        if (sessionMap == null) return null;
+        Object v = sessionMap.get(WARN_MSG);
+        return v != null ? v.toString() : null;
+    }
+
+    public static String getActionMsg(Map<?, ?> sessionMap) {
+        if (sessionMap == null) return null;
+        Object v = sessionMap.get(ACTION_MSG);
+        return v != null ? v.toString() : null;
+    }
+
+    /**
+     * Remove message keys from a session attribute map (used by Thymeleaf render path).
+     * If the map supports remove, keys will be removed; otherwise a debug log is emitted.
+     */
+    public static void cleanViewedMsgs(Map<?, ?> sessionMap) {
+        if (sessionMap == null) {
+            LOGGER.warn("Session map is null, cannot clear messages");
+            return;
+        }
+        try {
+            // remove entries if map is mutable
+            if (sessionMap instanceof java.util.concurrent.ConcurrentMap) {
+                sessionMap.remove(ERROR_MSG);
+                sessionMap.remove(WARN_MSG);
+                sessionMap.remove(ACTION_MSG);
+            } else {
+                // attempt remove for general Map implementations
+                sessionMap.remove(ERROR_MSG);
+                sessionMap.remove(WARN_MSG);
+                sessionMap.remove(ACTION_MSG);
+            }
+            LOGGER.debug("Cleared messages from session map after rendering");
+        } catch (UnsupportedOperationException e) {
+            LOGGER.debug("Session map is read-only; cannot remove keys: {}", e.getMessage());
+        } catch (Exception e) {
+            LOGGER.warn("Failed to clear messages from session map: {}", e.getMessage());
+        }
     }
 
 }

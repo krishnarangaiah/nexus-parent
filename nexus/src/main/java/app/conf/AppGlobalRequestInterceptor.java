@@ -44,7 +44,7 @@ public class AppGlobalRequestInterceptor implements HandlerInterceptor {
         AppUser sessionUser = SessionUtil.getSessionUser(session);
 
         if (ALLOWED_URIS.contains(request.getRequestURI())) {
-            LOGGER.info("Allowed URI: {} without Session User", request.getRequestURI());
+            LOGGER.debug("Allowed URI: {} without Session User", request.getRequestURI());
             return true;
         } else if (sessionUser == null || !session.getId().equals(sessionUser.getSessionId())) {
             LOGGER.warn("No Session User found for sessionId: {}, redirecting to {}", session.getId(), LOGIN_FORM);

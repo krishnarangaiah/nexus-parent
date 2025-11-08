@@ -20,7 +20,8 @@
 
 <div th:fragment="nav">
 
-    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+    <!-- make navbar a positioned container so messages can be absolutely centered above it -->
+    <nav class="navbar fixed-top bg-body-tertiary navbar-expand-lg" >
         <div class="container-fluid">
             <a class="navbar-brand ms-3" href="/"><span th:text="${appProperty.appName}"/></a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
@@ -57,31 +58,43 @@
                 </ul>
 
             </div>
+
+            <!-- center navbar messages: absolutely centered (both axes), on top of navbar -->
+            <div id="navbarMessages"
+                 style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); z-index:1050; width:100%; display:flex; justify-content:center; gap:0.5rem; pointer-events:auto;">
+                <div id="errorMsgId"
+                     class="alert alert-danger mb-0"
+                     role="alert"
+                     style="display: none; max-width:60%;"
+                     th:text="${T(app.session.SessionUtil).getErrorMsg(session)}"></div>
+
+                <div id="warnMsgId"
+                     class="alert alert-warning mb-0"
+                     role="alert"
+                     style="display: none; max-width:60%;"
+                     th:text="${T(app.session.SessionUtil).getWarnMsg(session)}"></div>
+
+                <div id="actionMsgId"
+                     class="alert alert-success mb-0"
+                     role="alert"
+                     style="display: none; max-width:60%;"
+                     th:text="${T(app.session.SessionUtil).getActionMsg(session)}"></div>
+            </div>
+
+            <!-- clear messages in session after rendering (no visible output) -->
+            <span th:text="${T(app.session.SessionUtil).cleanViewedMsgs(session)}" style="display:none;"></span>
+
         </div>
     </nav>
-
-    <div style="display:block; width:100%; height:5em; padding-top:0.3em; padding-bottom:0.5em;">
-        <center>
-            <div id="errorMsgId" class="alert alert-danger" role="alert" style="width: 60%; display: none;">
-                <div th:if="${errorMsg != null}"><span th:text="${errorMsg}"/></div>
-            </div>
-            <div id="warnMsgId" class="alert alert-warning" role="alert" style="width: 60%; display: none;">
-                <div th:if="${warnMsg != null}"><span th:text="${warnMsg}"/></div>
-            </div>
-            <div id="actionMsgId" class="alert alert-success" role="alert" style="width: 60%; display: none;">
-                <div th:if="${actionMsg != null}"><span th:text="${actionMsg}"/></div>
-            </div>
-        </center>
-    </div>
 
     <script type="text/javascript">
         // Keep message-show logic inline (runs after jQuery loaded in header)
         $(document).ready(function () {
             if ($('#errorMsgId').text().trim() !== '') {
-                $('#errorMsgId').show().delay(5000).fadeOut();
+                $('#errorMsgId').show().delay(7000).fadeOut();
             }
             if ($('#warnMsgId').text().trim() !== '') {
-                $('#warnMsgId').show().delay(5000).fadeOut();
+                $('#warnMsgId').show().delay(6000).fadeOut();
             }
             if ($('#actionMsgId').text().trim() !== '') {
                 $('#actionMsgId').show().delay(5000).fadeOut();
@@ -89,9 +102,9 @@
         });
     </script>
 
-    <div th:if="${breadcrumbs != null and !#lists.isEmpty(breadcrumbs)}">
+    <!--<div th:if="${breadcrumbs != null and !#lists.isEmpty(breadcrumbs)}">
         <div class="d-flex footer-breadcrumb p-2 justify-content-end"
-             style="--bs-breadcrumb-divider: '>'; padding-top: 0.3em; padding-bottom: 0.5em;"
+             style="&#45;&#45;bs-breadcrumb-divider: '>'; padding-top: 0.3em; padding-bottom: 0.5em;"
              aria-label="breadcrumb">
             <ol class="breadcrumb mb-0">
                 <li class="breadcrumb-item"
@@ -106,14 +119,14 @@
                 </li>
             </ol>
         </div>
-    </div>
+    </div>-->
     <span th:text="${T(app.session.SessionUtil).cleanViewedMsgs(session1)}"></span>
 </div>
 
 <div th:fragment="sidebar">
     <div class="sidebar">
        <!-- <h5 class="mb-3 menu-text">Navigation</h5>-->
-        <a href="#" class="sidebar-link">
+        <a href="/AppUser/Landing" class="sidebar-link">
             <i class="bi bi-house-door"></i>
             <span class="menu-text">Dashboard</span>
         </a>
