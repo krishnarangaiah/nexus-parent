@@ -31,6 +31,12 @@
             <artifactId>log4j-core</artifactId>
             <version>${log4j2.version}</version>
         </dependency>
+        <!-- NEW: share common classes from nexus-common -->
+        <dependency>
+            <groupId>org.gcliff.next.gen</groupId>
+            <artifactId>nexus-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
