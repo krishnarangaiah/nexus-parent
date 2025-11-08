@@ -24,19 +24,17 @@ public class AppGlobalRequestInterceptor implements HandlerInterceptor {
             "/AppUser/Login",
             LOGIN_FORM,
             "/webjars/bootstrap/5.3.3/css/bootstrap.min.css",
-            "/webjars/font-awesome/4.7.0/css/font-awesome.min.css",
+            "/webjars/bootstrap-icons/1.11.3/font/bootstrap-icons.css",
+            "/webjars/bootstrap-icons/1.11.3/font/bootstrap-icons.woff2",
+            "/webjars/bootstrap-icons/1.11.3/font/bootstrap-icons.woff",
+            "/webjars/bootstrap-icons/1.11.3/font/bootstrap-icons.ttf",
             "/webjars/bootstrap/5.3.3/js/bootstrap.min.js",
-            "/webjars/jquery/3.5.1/jquery.min.js",
+            "/webjars/jquery/3.7.1/jquery.min.js",
             "/webjars/d3js/5.16.0/d3.min.js",
             "/js/app.js",
             "/css/app.css",
             "/favicon.ico",
-            "/error",
-            "/webjars/font-awesome/4.7.0/fonts/fontawesome-webfont.woff2",
-            "/webjars/font-awesome/4.7.0/fonts/fontawesome-webfont.woff",
-            "/webjars/font-awesome/4.7.0/fonts/fontawesome-webfont.ttf",
-            "/webjars/font-awesome/4.7.0/fonts/fontawesome-webfont.woff2",
-            "/webjars/font-awesome/6.4.0/css/all.min.css"
+            "/error"
     );
     private final AppProperty appProperty = AppBeanContextService.getBeanFromContext(AppProperty.class);
 

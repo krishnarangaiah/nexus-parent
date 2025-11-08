@@ -2,21 +2,21 @@
 <html xmlns:th="http://www.thymeleaf.org">
 
 <div th:fragment="header">
-    <head>
-        <title th:text="${appProperty.appName}"/>
-        <meta charset="UTF-8"/>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-        <link rel="stylesheet" href="/webjars/bootstrap/5.3.3/css/bootstrap.min.css"/>
-        <link rel="stylesheet" href="/webjars/font-awesome/6.4.0/css/all.min.css"/>
-        <link th:href="@{/css/app.css}" rel="stylesheet"/>
+    <!-- head content only (no enclosing <head> tag) so it can be inserted into pages' <head> -->
+    <title th:text="${appProperty.appName}">App</title>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <!-- WebJar / static links -->
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap-icons/1.11.3/font/bootstrap-icons.css}"/>
+    <link th:href="@{/css/app.css}" rel="stylesheet"/>
 
-        <script type="text/javascript" src="/webjars/jquery/3.5.1/jquery.min.js"></script>
-        <script type="text/javascript" src="/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
-        <script type="text/javascript" src="/webjars/d3js/5.16.0/d3.min.js"></script>
-        <script type="text/javascript" th:src="@{/js/app.js}"></script>
-    </head>
+    <!-- Scripts: jQuery first, then Bootstrap, then app script -->
+    <script type="text/javascript" th:src="@{/webjars/jquery/3.7.1/jquery.min.js}"></script>
+    <script type="text/javascript" th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>
+    <script type="text/javascript" th:src="@{/webjars/d3js/5.16.0/d3.min.js}"></script>
+    <script type="text/javascript" th:src="@{/js/app.js}"></script>
 </div>
-
 
 <div th:fragment="nav">
 
@@ -75,6 +75,7 @@
     </div>
 
     <script type="text/javascript">
+        // Keep message-show logic inline (runs after jQuery loaded in header)
         $(document).ready(function () {
             if ($('#errorMsgId').text().trim() !== '') {
                 $('#errorMsgId').show().delay(5000).fadeOut();
@@ -86,7 +87,6 @@
                 $('#actionMsgId').show().delay(5000).fadeOut();
             }
         });
-
     </script>
 
     <div th:if="${breadcrumbs != null and !#lists.isEmpty(breadcrumbs)}">
@@ -108,6 +108,62 @@
         </div>
     </div>
     <span th:text="${T(app.session.SessionUtil).cleanViewedMsgs(session1)}"></span>
-    <script type="text/javascript" th:src="@{/js/app.js}"></script>
 </div>
 
+<div th:fragment="sidebar">
+    <div class="sidebar">
+       <!-- <h5 class="mb-3 menu-text">Navigation</h5>-->
+        <a href="#" class="sidebar-link">
+            <i class="bi bi-house-door"></i>
+            <span class="menu-text">Dashboard</span>
+        </a>
+        <a href="#" class="sidebar-link has-submenu">
+            <i class="bi bi-gear"></i>
+            <span class="menu-text">Components</span>
+            <i class="bi bi-chevron-right menu-arrow"></i>
+        </a>
+        <div class="submenu">
+            <a href="/Rates/Component/List" class="sidebar-link">
+                <i class="bi bi-circle"></i>
+                <span class="menu-text">Rates Component</span>
+            </a>
+            <a href="#" class="sidebar-link">
+                <i class="bi bi-circle"></i>
+                <span class="menu-text">Other Components</span>
+            </a>
+        </div>
+        <a href="#" class="sidebar-link has-submenu">
+            <i class="bi bi-clock-history"></i>
+            <span class="menu-text">Monitoring</span>
+            <i class="bi bi-chevron-right menu-arrow"></i>
+        </a>
+        <div class="submenu">
+            <a href="/RatesComponent/Landing" class="sidebar-link">
+                <i class="bi bi-circle"></i>
+                <span class="menu-text">Rates Monitoring</span>
+            </a>
+        </div>
+        <a href="#" class="sidebar-link has-submenu">
+            <i class="bi bi-graph-up"></i>
+            <span class="menu-text">Analytics</span>
+            <i class="bi bi-chevron-right menu-arrow"></i>
+        </a>
+        <div class="submenu">
+            <a href="/Autosys/Landing" class="sidebar-link">
+                <i class="bi bi-circle"></i>
+                <span class="menu-text">Autosys Analysis</span>
+            </a>
+        </div>
+        <hr/>
+        <a href="#" class="sidebar-link">
+            <i class="bi bi-question-circle"></i>
+            <span class="menu-text">Help & Support</span>
+        </a>
+    </div>
+    <!-- make toggle an explicit interactive element with aria and tabindex -->
+    <div class="sidebar-toggle" role="button" aria-label="Toggle navigation" tabindex="0" aria-expanded="false">
+        <i class="bi bi-chevron-right" aria-hidden="true"></i>
+    </div>
+</div>
+
+</html>

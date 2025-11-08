@@ -3,47 +3,62 @@
 <head>
     <header th:insert="layout/AppLayout.html :: header"></header>
     <style>
-
         body {
-             overflow-x: hidden;
-         }
+            overflow-x: hidden;
+        }
 
-         h5{
-            font-family: trebuchet ms, sans-serif;
+        h5 {
+            font-family: 'Roboto', sans-serif;
+            font-size: 1rem;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            color: #172B4D;
+        }
+
+        .custom-card {
+            font-size: 0.825rem;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Update side panel typography */
+        #sideId h5 {
             font-size: 1.1rem;
-            transition: color 0.3s ease;
-         }
+            font-weight: 600;
+            color: #172B4D;
+            letter-spacing: 0.3px;
+        }
 
-         .custom-card {
-             font-size: 0.7rem;
-             font-family: sans-serif;
-         }
-         .custom-border {
-             border-width: 0 1.2px 0 0 ; /* No top/bottom border, 10px left/right border */
-             border-style: solid;
-             border-image: linear-gradient(to bottom, yellow, #1e88e5, yellow) 1;
-             height: 100%; /* Ensure the div's height is fully covered */
-         }
+        #sideId .table {
+            font-size: 0.825rem;
+            color: #42526E;
+        }
 
-         #sideId {
-             visibility: hidden;
-             opacity: 0;
-             transform: translateX(100%);
-             transition: visibility 0s, opacity 0.2s ease, transform 0.2s ease;
-         }
+        .custom-border {
+            border-width: 0 1.2px 0 0 ; /* No top/bottom border, 10px left/right border */
+            border-style: solid;
+            border-image: linear-gradient(to bottom, yellow, #1e88e5, yellow) 1;
+            height: 100%; /* Ensure the div's height is fully covered */
+        }
 
-         #sideId.show {
-             visibility: visible;
-             opacity: 1;
-             transform: translateX(0);
-             transition-delay: 0s;
-         }
+        #sideId {
+            visibility: hidden;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: visibility 0s, opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        #sideId.show {
+            visibility: visible;
+            opacity: 1;
+            transform: translateX(0);
+            transition-delay: 0s;
+        }
 
         #sideId.hide {
-             visibility: hidden;
-             opacity: 0;
-                transform: translateX(100%);
-         }
+            visibility: hidden;
+            opacity: 0;
+            transform: translateX(100%);
+        }
 
     </style>
 </head>
