@@ -5,6 +5,7 @@ import app.dao.model.monitoring.AgentService;
 import app.websocket.dto.Metrics;
 import com.google.gson.Gson;
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -22,8 +23,12 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
-
+// Added imports for scheduler
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /*
     Enhanced: maintain a server-side view of connected agents (last-seen)
@@ -33,8 +38,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MonitoringAgentController {
 
     private static final Gson GSON = new Gson();
-
-    // Added: direct Log4j2 logger to ensure messages go through configured log4j2 appenders
     private static final org.apache.logging.log4j.Logger LOGGER = org.apache.logging.log4j.LogManager.getLogger(MonitoringAgentController.class);
 
     @Autowired
@@ -42,27 +45,60 @@ public class MonitoringAgentController {
 
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
-
-    // agentId -> last-seen timestamp (ms)
-    private final ConcurrentHashMap<String, Long> lastSeen = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Agent> agentSnapshot = new ConcurrentHashMap<>();
 
     // heartbeat timeout (ms) to consider agent inactive — configurable as reasonable default
     private static final long HEARTBEAT_TIMEOUT_MS = 15_000L;
 
+    // Scheduler to periodically push snapshots to /topic/agents/status
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    private static final long SNAPSHOT_PUSH_INTERVAL_MS = 10_000L; // push every 10s
+    private static final long SNAPSHOT_PUSH_INITIAL_DELAY_MS = 5_000L; // start after 5s
+
     @PostConstruct
     public void init() {
-        // Dual-write: logger + stdout to ensure visibility regardless of logging config
-        LOGGER.info("MonitoringAgentController initialized. lastSeen size={}", lastSeen.size());
-        System.out.println("MonitoringAgentController initialized. (stdout fallback)");
+
+        // start periodic snapshot push task
+        scheduler.scheduleAtFixedRate(() -> {
+            try {
+                int count = agentSnapshot.size();
+                if (count == 0) {
+                    LOGGER.debug("Scheduled push: no agent snapshots to broadcast");
+                    return;
+                }
+                // broadcast each agent's snapshot
+
+                try {
+                    messagingTemplate.convertAndSend("/topic/agents/status", agentSnapshot);
+                } catch (Throwable t) {
+                    LOGGER.debug("Failed to push snapshot for agent");
+                }
+
+                LOGGER.info("Scheduled push: broadcasted {} agent snapshots", count);
+                System.out.println("Scheduled push: broadcasted " + count + " agent snapshots (stdout)");
+            } catch (Throwable t) {
+                LOGGER.error("Scheduled snapshot push failed", t);
+                System.out.println("Scheduled snapshot push failed: " + t.getMessage());
+            }
+        }, SNAPSHOT_PUSH_INITIAL_DELAY_MS, SNAPSHOT_PUSH_INTERVAL_MS, TimeUnit.MILLISECONDS);
+    }
+
+    @PreDestroy
+    public void shutdown() {
+        try {
+            scheduler.shutdownNow();
+            scheduler.awaitTermination(2, TimeUnit.SECONDS);
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+        } catch (Throwable t) {
+            LOGGER.debug("Error shutting down scheduler: {}", t.getMessage());
+        }
     }
 
     @GetMapping("/Monitoring/Agent/Landing")
     public String landing(Model model) {
-         LOGGER.info("Agent Monitoring Controller accessed.");
-        System.out.println("Agent Monitoring Controller accessed. (stdout fallback)");
+        LOGGER.info("Agent Monitoring Controller accessed.");
         model.addAttribute("agents", agentService.findAll());
-        // add a snapshot of current statuses for initial page render (optional)
-        model.addAttribute("agentLastSeenMap", lastSeen);
         return "agent/monitoring/Landing.html";
     }
 
@@ -173,78 +209,29 @@ public class MonitoringAgentController {
 
     /*
      * Websocket-based metrics streaming
-     *
-     * Changed: accept Message<Metrics> so MappingJackson2MessageConverter can deserialize JSON object into Metrics.
-     * Logs headers and payload to help trace incoming frames and avoid conversion errors seen in logs.
      */
     @MessageMapping("/metrics")
     @SendTo("/topic/metrics")
     public String handleMetrics(Message<Metrics> message) {
-        // Console fallback first so we always see arrival
-        try {
-            System.out.println("STOMP /metrics inbound (stdout): message=" + message);
-        } catch (Throwable t) {
-            // ignore
-        }
-
-        // Log STOMP/native headers and session info for full traceability
-        try {
-            StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
-            LOGGER.info("STOMP /metrics received headers={}, sessionId={}", accessor.toNativeHeaderMap(), accessor.getSessionId());
-            LOGGER.info("STOMP /metrics received headers={}, sessionId={}", accessor.toNativeHeaderMap(), accessor.getSessionId());
-            System.out.println("STOMP /metrics received headers (stdout): " + accessor.toNativeHeaderMap() + " sessionId=" + accessor.getSessionId());
-        } catch (Exception he) {
-            LOGGER.debug("Could not extract StompHeaderAccessor for message headers: {}", he.getMessage());
-            LOGGER.debug("Could not extract StompHeaderAccessor for message headers: {}", he.getMessage());
-            System.out.println("Could not extract StompHeaderAccessor for message headers: " + he.getMessage());
-        }
 
         Metrics metrics = message == null ? null : message.getPayload();
-        if (metrics == null) {
-            LOGGER.warn("Received /metrics with null payload (conversion may have failed). Raw message: {}", message);
-            LOGGER.warn("Received /metrics with null payload (conversion may have failed). Raw message: {}", message);
-            System.out.println("Received /metrics with null payload (stdout fallback). Raw message: " + message);
-            return "Invalid metrics";
-        }
-
-        try {
-            String agentId = metrics.getAgentId();
-            LOGGER.info("Parsed metrics from agent={}: threads={}, heapUsed={}, heapMax={}, timestamp={}",
-                    agentId, metrics.getThreads(), metrics.getHeapUsed(), metrics.getHeapMax(), metrics.getTimestamp());
-            LOGGER.info("Parsed metrics from agent={}: threads={}, heapUsed={}, heapMax={}, timestamp={}",
-                    agentId, metrics.getThreads(), metrics.getHeapUsed(), metrics.getHeapMax(), metrics.getTimestamp());
-            System.out.println("Parsed metrics from agent (stdout): " + agentId + " ts=" + metrics.getTimestamp());
-
-            long ts = metrics.getTimestamp() > 0 ? metrics.getTimestamp() : Instant.now().toEpochMilli();
-            lastSeen.put(agentId, ts);
-
-            // Determine status based on lastSeen timestamp
-            String status;
-            long now = Instant.now().toEpochMilli();
-            if ((now - ts) > HEARTBEAT_TIMEOUT_MS) {
-                status = "INACTIVE";
-            } else {
-                status = "ACTIVE";
+        if (metrics != null) {
+            try {
+                String agentId = metrics.getAgentId();
+                try {
+                    Agent agent = agentService.findByAgentId(agentId);
+                    if (agent != null) {
+                        agent.setHeartbeat(new Random().nextLong());
+                        agentSnapshot.put(agentId, agent);
+                    }
+                } catch (Throwable t) {
+                    LOGGER.debug("Failed retrieving DB agent info for displayName: {}", t.getMessage());
+                }
+            } catch (Exception e) {
+                LOGGER.error("Failed processing metrics payload", e);
+                return "Processing error";
             }
-
-            // Broadcast a compact status update to subscribed dashboards
-            messagingTemplate.convertAndSend("/topic/agents/status",
-                    Collections.unmodifiableMap(new ConcurrentHashMap<String, Object>() {{
-                        put("agentId", agentId);
-                        put("status", status);
-                        put("timestamp", ts);
-                    }}));
-
-            LOGGER.info("Metrics processed for agent={}, threads={}, heapUsed={}, status={}", agentId, metrics.getThreads(), metrics.getHeapUsed(), status);
-            LOGGER.info("Metrics processed for agent={}, threads={}, heapUsed={}, status={}", agentId, metrics.getThreads(), metrics.getHeapUsed(), status);
-            System.out.println("Metrics processed for agent (stdout): " + agentId + " status=" + status);
-        } catch (Exception e) {
-            LOGGER.error("Failed processing metrics payload", e);
-            LOGGER.error("Failed processing metrics payload", e);
-            System.out.println("Failed processing metrics payload (stdout): " + e.getMessage());
-            return "Processing error";
         }
-
         return "Processed Metrics";
     }
 

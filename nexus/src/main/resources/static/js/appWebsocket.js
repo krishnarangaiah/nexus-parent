@@ -5,6 +5,10 @@
      - topic (default '/topic/agents/status')
      - reconnectInitial (ms)
      - reconnectMax (ms)
+     - liveEvents: boolean
+     - liveEventsPanelId: string
+     - liveEventsListId: string
+     - liveEventsMax: number
 */
 (function (global) {
     function safeLog() { try { console.log.apply(console, arguments); } catch (e) {} }
@@ -18,8 +22,32 @@
         reconnectDelay: 1000,
         reconnectMax: 30000,
         probeTimeoutMs: 2000,
-        useSockJS: null
+        useSockJS: null,
+        // live events state
+        liveEvents: false,
+        liveEventsPanelId: 'live-events-panel',
+        liveEventsListId: 'live-events-list',
+        liveEventsMax: 50,
+        liveEventsUnread: 0
     };
+
+    // Pretty-print helpers
+    function numberWithCommas(x) {
+        if (x === null || typeof x === 'undefined') return '-';
+        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+    function formatBytes(bytes) {
+        if (bytes === null || typeof bytes === 'undefined') return '-';
+        bytes = Number(bytes);
+        if (isNaN(bytes)) return bytes;
+        var units = ['B','KB','MB','GB','TB'];
+        var i = 0;
+        while (bytes >= 1024 && i < units.length-1) {
+            bytes = bytes / 1024;
+            i++;
+        }
+        return Math.round(bytes * 10) / 10 + ' ' + units[i];
+    }
 
     function buildWsUrl(endpointPath) {
         var proto = (location.protocol === 'https:') ? 'wss://' : 'ws://';
@@ -46,26 +74,97 @@
         }
     }
 
+    function appendLiveEvent(payload) {
+        try {
+            if (!state.liveEvents) return;
+            var listEl = document.getElementById(state.liveEventsListId);
+            if (!listEl) return;
+            // remove placeholder "no-events"
+            if (listEl.children.length === 1 && listEl.children[0].classList.contains('no-events')) {
+                listEl.innerHTML = '';
+            }
+            var li = document.createElement('li');
+            li.className = 'list-group-item';
+            li.textContent = payload;
+            // prepend
+            if (listEl.firstChild) listEl.insertBefore(li, listEl.firstChild);
+            else listEl.appendChild(li);
+            // trim
+            while (listEl.children.length > state.liveEventsMax) {
+                listEl.removeChild(listEl.lastChild);
+            }
+            // update unread badge if panel hidden
+            var panel = document.getElementById(state.liveEventsPanelId);
+            var badge = document.getElementById('notif-badge');
+            if (panel && badge) {
+                var isVisible = window.getComputedStyle(panel).display !== 'none';
+                if (!isVisible) {
+                    state.liveEventsUnread = Math.min(state.liveEventsUnread + 1, 999);
+                    badge.textContent = state.liveEventsUnread;
+                    badge.style.display = 'inline-block';
+                }
+            }
+        } catch (e) {
+            safeLog('appendLiveEvent failed', e);
+        }
+    }
+
+    function clearLiveEvents() {
+        try {
+            var listEl = document.getElementById(state.liveEventsListId);
+            if (!listEl) return;
+            listEl.innerHTML = '<li class="list-group-item no-events">No events yet.</li>';
+            state.liveEventsUnread = 0;
+            var badge = document.getElementById('notif-badge');
+            if (badge) { badge.style.display = 'none'; badge.textContent = '0'; }
+        } catch (e) { safeLog('clearLiveEvents failed', e); }
+    }
+
+    function toggleLiveEvents(evt) {
+        try {
+            var panel = document.getElementById(state.liveEventsPanelId);
+            if (!panel) return;
+            var showing = window.getComputedStyle(panel).display !== 'none';
+            if (showing) {
+                panel.style.display = 'none';
+            } else {
+                panel.style.display = 'block';
+                // reset unread count and hide badge
+                state.liveEventsUnread = 0;
+                var badge = document.getElementById('notif-badge');
+                if (badge) { badge.style.display = 'none'; badge.textContent = '0'; }
+            }
+        } catch (e) { safeLog('toggleLiveEvents failed', e); }
+    }
+
     function handleStatusMessage(message) {
         try {
             var body = message && (message.body || message);
             safeLog('Received', state.topic, 'message body:', body);
-            var payload = typeof body === 'string' ? JSON.parse(body) : body;
-            var agentId = payload.agentId;
-            var status = payload.status;
-            var el = document.getElementById('agent-status-' + agentId);
-            if (el) {
-                el.textContent = status;
-                if (status === 'ACTIVE') {
-                    el.className = 'badge bg-success';
-                } else if (status === 'INACTIVE') {
-                    el.className = 'badge bg-secondary';
-                } else {
-                    el.className = 'badge bg-warning text-dark';
+            var payload = null;
+            if (typeof body === 'string') {
+                try {
+                    payload = JSON.parse(body);
+                } catch (e) {
+                    safeLog('Failed to parse message body as JSON', e);
+                    return;
                 }
             } else {
-                safeLog('Status update for unknown agent', agentId, status);
+                payload = body;
             }
+
+            if (!payload) {
+                safeLog('Ignoring payload without agentId', payload);
+                return;
+            }
+
+            // Add a compact live-event entry for UI
+            try {
+                appendLiveEvent(payload);
+            } catch (e) {
+                safeLog('appendLiveEvent error', e);
+            }
+
         } catch (e) {
             safeLog('Failed processing agent status message', e, message);
         }
@@ -182,11 +281,18 @@
             state.topic = options.topic || state.topic;
             state.reconnectDelay = options.reconnectInitial || state.reconnectDelay;
             state.reconnectMax = options.reconnectMax || state.reconnectMax;
-            safeLog('AppWebsocket.init', { endpointPath: state.endpointPath, topic: state.topic });
+            // live events options
+            if (options.liveEvents) state.liveEvents = true;
+            if (options.liveEventsPanelId) state.liveEventsPanelId = options.liveEventsPanelId;
+            if (options.liveEventsListId) state.liveEventsListId = options.liveEventsListId;
+            if (options.liveEventsMax) state.liveEventsMax = options.liveEventsMax;
+            safeLog('AppWebsocket.init', { endpointPath: state.endpointPath, topic: state.topic, liveEvents: state.liveEvents });
             initStompClient();
         },
         disconnect: disconnect,
         send: send,
+        toggleLiveEvents: toggleLiveEvents,
+        clearLiveEvents: clearLiveEvents,
         _state: function () { return state; } // debug helper
     };
 
@@ -194,4 +300,3 @@
     global.AppWebsocket = AppWebsocket;
 
 })(window);
-

@@ -2,6 +2,10 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <header th:insert="layout/AppLayout.html :: header"></header>
+
+    <!-- per-page styles moved to static/css/app.css for reuse and offline packaging -->
+    <!-- removed inline style block — styles for .agent-card, .kv-list, .agent-icon, .kv-value, .icon-btn, #live-events-panel etc.
+         are now in src/main/resources/static/css/app.css -->
 </head>
 <body>
 <div th:insert="layout/AppLayout.html :: nav"></div>
@@ -18,90 +22,68 @@
                 <small class="text-muted">Overview of agents health</small>
             </div>
             <div>
-                <!-- Notification button: shows incrementing badge and opens Live Events -->
-                <button id="notif-btn"
-                        class="btn btn-sm btn-outline-info position-relative me-2"
-                        type="button"
-                        aria-label="Notifications"
-                        onclick="openLiveEvents(event)">
+                <!-- Notification button & Create -->
+                <button id="notif-btn" class="btn btn-sm btn-outline-info position-relative me-2" type="button" aria-label="Notifications" onclick="if(window.AppWebsocket) AppWebsocket.toggleLiveEvents(event);">
                     <i class="bi bi-bell"></i>
-                    <span id="notif-badge"
-                          class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                          style="display:none; font-size:0.65rem; padding:0.25rem 0.45rem;">0</span>
+                    <span id="notif-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display:none; font-size:0.65rem; padding:0.25rem 0.45rem;">0</span>
                 </button>
-
                 <a class="btn btn-sm btn-primary" href="/Monitoring/Agent/CreateForm">Create</a>
             </div>
         </div>
 
-        <!-- Dashboard grid -->
-        <div class="row">
-            <div class="dashboard-grid">
-                <!-- iterate agents provided by controller -->
-                <div th:each="agent : ${agents}" class="custom-card kpi-card d-flex align-items-start p-2"
-                     th:attr="data-href=@{/Monitoring/Agent/Edit/{id}(id=${agent.id})}, data-method='GET'"
-                     th:onclick="'wrapCardOnClick(event, \\'/Monitoring/Agent/Edit/' + ${agent.id} + '\\', \\'GET\\')'">
-
-                    <div class="stat-icon me-2"
-                         style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
+        <!-- Dashboard grid: use Bootstrap grid so cards align & size properly -->
+        <div class="row g-3">
+            <!-- iterate agents provided by controller -->
+            <div th:each="agent : ${agents}" class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <div class="custom-card kpi-card d-flex align-items-center p-2">
+                    <div class="stat-icon me-2" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
                         <i class="bi bi-pc-display-horizontal" style="font-size:1.05rem;"></i>
                     </div>
-
-                    <div class="d-flex flex-column" style="flex:1;">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <div class="stat-value mb-0" style="font-weight:700;font-size:1.05rem;"
-                                     th:text="${agent.displayName}">Agent Name</div>
-                                <div class="text-muted small" th:text="${agent.agentId}">agent-id</div>
-                            </div>
-                            <div class="text-end">
-                                <div>
-                                    <!-- Status badge (will be updated by websocket events). ID uses agentId -->
-                                    <span th:id="'agent-status-' + ${agent.agentId}"
-                                          th:text="${agent.status}"
-                                          class="badge"
-                                          th:classappend="${agent.status == 'ACTIVE'} ? ' bg-success' : ' bg-secondary'">STATUS</span>
-
-                                    <a th:href="@{/Monitoring/Agent/Edit/{id}(id=${agent.id})}" class="btn btn-sm btn-outline-secondary me-1">Edit</a>
-                                    <form th:action="@{/Monitoring/Agent/Delete/{id}(id=${agent.id})}" method="post" style="display:inline;">
-                                        <div th:if="${_csrf != null}">
-                                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-                                        </div>
-                                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-
-                        <table class="table table-sm mt-2 mb-0">
-                            <tr><td>Id</td><td th:text="${agent.agentId}">agent-id</td></tr>
-                            <tr><td>Status</td><td th:text="${agent.status}">status</td></tr>
-                            <tr><td>Machine</td><td th:text="${agent.machine}">machine</td></tr>
-                            <tr><td>Heart Beat</td><td th:text="${agent.heartbeat}">heartbeat</td></tr>
-                            <tr><td>Custom program</td><td th:text="${agent.customProgramCount}">0</td></tr>
-                        </table>
+                    <div class="d-flex flex-column">
+                        <div class="stat-value mb-0" style="font-weight:700;font-size:1.05rem;" th:text="${agent.agentId}"></div>
+                        <div class="stat-label text-muted small" th:text="${agent.displayName}"></div>
                     </div>
                 </div>
-
-                <!-- fallback message when no agents -->
-                <div th:if="${#lists.isEmpty(agents)}" class="text-muted p-3">No agents found. <a href="/Monitoring/Agent/CreateForm">Create one</a>.</div>
-
+            </div>
+            <!-- fallback message when no agents -->
+            <div th:if="${#lists.isEmpty(agents)}" class="col-12 text-center text-muted p-3">
+                No agents found. <a href="/Monitoring/Agent/CreateForm">Create one</a>.
             </div>
         </div>
 
     </div>
 </div>
 
-<!-- replaced: moved websocket/STOMP code into /js/appWebsocket.js -->
+<!-- Floating Live Events panel (restructured to use Bootstrap card-header/card-body) -->
+<div id="live-events-panel" class="card shadow-sm" style="display:none;">
+    <div class="card-header panel-header">
+        <div class="title">Live Events</div>
+        <div class="panel-controls" style="display:flex;gap:0.4rem;">
+            <button class="btn btn-sm btn-outline-secondary" onclick="if(window.AppWebsocket) AppWebsocket.clearLiveEvents();">Clear</button>
+            <button class="btn btn-sm btn-outline-danger" onclick="if(window.AppWebsocket) AppWebsocket.toggleLiveEvents();">Close</button>
+        </div>
+    </div>
+    <div class="card-body p-0" style="max-height:52vh; overflow:auto;">
+        <ul id="live-events-list" class="list-group list-group-flush">
+            <li class="list-group-item no-events">No events yet.</li>
+        </ul>
+    </div>
+</div>
+
+<!-- initialize websocket client and live events wiring -->
 <script type="text/javascript">
-    // initialize the websocket client for this page
     (function(){
         try {
-            // default endpoint path used across app; override if needed
             var endpointPath = '/ws';
-            // init with default options; appWebsocket exposes init()
             if (window.AppWebsocket && typeof window.AppWebsocket.init === 'function') {
-                window.AppWebsocket.init({ endpointPath: endpointPath, topic: '/topic/agents/status' });
+                window.AppWebsocket.init({
+                    endpointPath: endpointPath,
+                    topic: '/topic/agents/status',
+                    liveEvents: true,
+                    liveEventsPanelId: 'live-events-panel',
+                    liveEventsListId: 'live-events-list',
+                    liveEventsMax: 100
+                });
             } else {
                 console.warn('AppWebsocket module not loaded; live updates disabled');
             }
