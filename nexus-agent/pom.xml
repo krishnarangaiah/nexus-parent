@@ -20,7 +20,7 @@
         <!-- NEW: share common classes from nexus-common -->
         <dependency>
             <groupId>org.gcliff.next.gen</groupId>
-            <artifactId>nexus-common</artifactId>
+            <artifactId>nexus-core</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
