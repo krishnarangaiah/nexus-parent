@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <header th:insert="layout/AppLayout.html :: header"></header>
+</head>
+<body>
+<div th:insert="layout/AppLayout.html :: nav"></div>
+<div th:replace="layout/AppLayout.html :: sidebar"></div>
+
+<div class="main-content mt-5">
+    <div class="container-fluid py-4">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <div class="ms-5">
+                <h2 class="mb-0">Agents Dashboard</h2>
+                <small class="text-muted">Overview of agents health</small>
+            </div>
+            <div>
+                <button id="notif-btn" class="btn btn-sm btn-outline-info position-relative me-2" type="button"
+                        aria-label="Notifications"
+                        onclick="if(window.AppWebsocket) AppWebsocket.toggleLiveEvents();">
+                    <i class="bi bi-bell"></i>
+                    <span id="notif-badge"
+                          class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                          style="display:none;">0</span>
+                </button>
+                <a class="btn btn-sm btn-primary" href="/Monitoring/Agent/CreateForm">Create</a>
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <div th:each="agent : ${agents}" class="col-6 col-md-4 col-lg-3">
+                <div class="agent-card"
+                     th:id="${agent.agentId}"
+                     th:classappend="${agent.status == 'ONLINE'} ? ' agent-online' : ' agent-offline'"
+                     th:attr="data-agent-id=${agent.agentId}">
+                     <div class="agent-status-indicator"
+                          th:classappend="${agent.status == 'ONLINE'} ? ' status-online' : ' status-offline'"></div>
+
+                    <h5 class="agent-id" th:text="${agent.agentId}"></h5>
+                    <p class="agent-name text-muted" th:text="${agent.displayName}"></p>
+                    <p class="agent-status" th:text="'Status: ' + ${agent.status}"></p>
+                </div>
+            </div>
+            <div th:if="${#lists.isEmpty(agents)}" class="col-12 text-center text-muted p-3">
+                No agents found. <a href="/Monitoring/Agent/CreateForm">Create one</a>.
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript" th:src="@{/js/app-websocket.js}"></script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <header th:insert="layout/AppLayout.html :: header"></header>
+</head>
+<body>
+<div th:insert="layout/AppLayout.html :: nav"></div>
+
+<div th:replace="layout/AppLayout.html :: sidebar"></div>
+
+<div class="container-fluid h-100">
+    <div class="row justify-content-center align-items-center w-100">
+
+        This is Admin Landing Page
+
+    </div>
+</div>
+
+</body>
+</html>

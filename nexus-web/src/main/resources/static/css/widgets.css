@@ -1,0 +1,225 @@
+/* Component / widget level styles (agent-card, live-events, small utilities) */
+
+/* Agent card styles ------------------------------------------------------- */
+.agent-card {
+    background: #ffffff;
+    border: 1px solid #e6eefc; /* soft blue border */
+    border-radius: 0.6rem;
+    box-shadow: 0 6px 16px rgba(9,30,66,0.06);
+    transition: transform .18s ease, box-shadow .18s ease;
+    overflow: hidden;
+}
+.agent-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 30px rgba(9,30,66,0.10);
+}
+
+/* compact header: left area (icon + title) and right area (actions + status) */
+.agent-card .card-header-compact {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:0.75rem;
+    margin-bottom:0.5rem;
+}
+
+/* agent icon */
+.agent-icon {
+    width:44px;
+    height:44px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:8px;
+    color:#fff;
+    flex-shrink:0;
+    background: linear-gradient(135deg, #0b5ed7 0%, #0d6efd 100%);
+    font-size:1.15rem;
+    box-shadow: 0 4px 10px rgba(13,110,253,0.12);
+}
+
+/* title / subtitle */
+.agent-title {
+    font-weight:700;
+    font-size:1.02rem;
+    color:#0f1724; /* dark slate */
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+.agent-subtitle {
+    font-size:0.85rem;
+    color:#6c757d;
+}
+
+/* key/value list (vertical) */
+.kv-list {
+    list-style:none;
+    padding:0;
+    margin:0;
+    display:flex;
+    flex-direction:column;
+    gap:0.45rem;
+}
+.kv-row {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:0.5rem;
+    padding:0.18rem 0;
+    border-bottom:1px dashed rgba(9,30,66,0.03);
+}
+.kv-row:last-child { border-bottom: none; }
+.kv-left { display:flex; align-items:center; gap:0.6rem; min-width:0; }
+
+/* small icon next to label */
+.kv-icon {
+    width:20px;
+    height:20px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    color:#6c757d;
+    flex-shrink:0;
+}
+.kv-label {
+    font-size:0.82rem;
+    color:#6c757d;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+/* values: emphasize with primary color */
+.kv-value {
+    font-weight:700;
+    font-size:0.95rem;
+    text-align:right;
+    min-width:4.5rem;
+    color:#0b5ed7; /* professional blue */
+}
+
+/* icon-only small buttons */
+.icon-btn {
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:34px;
+    height:34px;
+    border-radius:6px;
+    text-decoration:none;
+    background:transparent;
+    border:0;
+    cursor:pointer;
+}
+.icon-btn i { font-size:1.05rem; }
+.icon-btn:hover { background: rgba(9,30,66,0.03); }
+
+/* status badge tweaks for better contrast */
+.agent-card .badge {
+    font-weight:600;
+    color:#fff;
+    background: #6c757d;
+    border-radius: 0.375rem;
+}
+.agent-card .badge.bg-success { background: #198754; }
+.agent-card .badge.bg-secondary { background: #6c757d; }
+.agent-card .badge.bg-warning { background: #f59e0b; color: #0f1724; }
+
+/* ensure card body uses vertical layout and spacing for agent card internals */
+.agent-card .card-body {
+    padding:0.9rem !important;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-start;
+    height:100%;
+}
+
+/* live-events panel (polished & aligned) */
+#live-events-panel {
+    /* fixed to the right, below the fixed navbar; use a variable so it's easy to tweak globally */
+    position: fixed;
+    right: 1rem;
+    top: var(--navbar-offset, 5.0rem); /* default fallback 5rem (matches AppLayout .main-content padding-top) */
+    width: 340px;
+    max-height: 62vh;
+    z-index: 9999; /* bring panel above everything (cards, tooltips, etc.) */
+    display: none; /* controlled by JS or the .live-events-open utility class */
+    border-radius: 0.6rem;
+    overflow: hidden; /* clip round corners */
+    box-shadow: 0 12px 30px rgba(9,30,66,0.10);
+    box-sizing: border-box;
+    /* help ensure it forms its own layer and avoids being under transformed parents */
+    transform: translateZ(0);
+    will-change: transform, opacity;
+    pointer-events: auto;
+    background: #ffffff;
+}
+
+/* Utility to show the panel (JS can add/remove this class instead of inline styles) */
+.live-events-open {
+    display: block !important;
+}
+
+/* card header for panel: flex layout so title + controls align horizontally */
+#live-events-panel .panel-header {
+    display: flex;
+    align-items: center;      /* vertical center alignment */
+    justify-content: space-between;
+    gap: 0.6rem;
+    padding: 0.45rem 0.75rem; /* slightly tighter padding for alignment */
+    background: #f8fafc;
+    border-bottom: 1px solid rgba(9,30,66,0.04);
+}
+
+/* title styling */
+#live-events-panel .panel-header .title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: #0f1724;
+}
+
+/* controls area (buttons) */
+#live-events-panel .panel-controls button {
+    padding: 0.25rem 0.45rem;
+    font-size: 0.78rem;
+    height: 32px;
+    line-height: 1;
+}
+
+/* list items */
+#live-events-panel .list-group-item {
+    font-size: 0.86rem;
+    padding: 0.5rem 0.75rem;
+    word-break: break-word;
+    border-left: none;
+    border-right: none;
+}
+
+/* placeholder no-events styling */
+#live-events-panel .list-group-item.no-events {
+    color: #6c757d;
+    text-align: center;
+}
+
+/* small responsive tweak: reduce width on small screens */
+@media (max-width: 480px) {
+    #live-events-panel { right: 0.5rem; width: 90%; top: calc(var(--navbar-offset, 4.8rem)); }
+}
+
+/* responsive tweaks specific to widgets (override/augment app.css media rules) */
+@media (max-width: 576px) {
+    .agent-title { font-size: 0.95rem; }
+    .kv-value { font-size: 0.88rem; }
+}
+
+/* ensure the card-body is the scroll region and list-group is flush */
+#live-events-panel .card-body {
+    padding: 0 !important;
+    max-height: 52vh;
+    overflow-y: auto;
+}
+/* ensure list-group flush sits nicely inside card-body */
+#live-events-panel .list-group {
+    margin: 0;
+}
