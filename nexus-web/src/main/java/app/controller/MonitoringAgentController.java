@@ -6,6 +6,8 @@ import app.websocket.dto.Metrics;
 import com.google.gson.Gson;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -14,83 +16,41 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.time.Instant;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.concurrent.ConcurrentHashMap;
-// Added imports for scheduler
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 /*
     Enhanced: maintain a server-side view of connected agents (last-seen)
-    and broadcast status updates to /topic/agents/status so Landing.html can update live.
+    and broadcast status updates to /topic/agents/status so Dashboard.html can update live.
 */
 @Controller
 public class MonitoringAgentController {
 
     private static final Gson GSON = new Gson();
-    private static final org.apache.logging.log4j.Logger LOGGER = org.apache.logging.log4j.LogManager.getLogger(MonitoringAgentController.class);
+    private static final Logger LOGGER = LogManager.getLogger(MonitoringAgentController.class);
+    private final Map<String, Agent> agentSnapshot = Collections.synchronizedMap(new java.util.HashMap<>());
+
 
     @Autowired
     private AgentService agentService;
 
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
-    private final ConcurrentHashMap<String, Agent> agentSnapshot = new ConcurrentHashMap<>();
-
-    // heartbeat timeout (ms) to consider agent inactive — configurable as reasonable default
-    private static final long HEARTBEAT_TIMEOUT_MS = 15_000L;
-
-    // Scheduler to periodically push snapshots to /topic/agents/status
-    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-    private static final long SNAPSHOT_PUSH_INTERVAL_MS = 10_000L; // push every 10s
-    private static final long SNAPSHOT_PUSH_INITIAL_DELAY_MS = 5_000L; // start after 5s
 
     @PostConstruct
     public void init() {
-
-        // start periodic snapshot push task
-        scheduler.scheduleAtFixedRate(() -> {
-            try {
-                int count = agentSnapshot.size();
-                if (count == 0) {
-                    LOGGER.debug("Scheduled push: no agent snapshots to broadcast");
-                    return;
-                }
-                // broadcast each agent's snapshot
-
-                try {
-                    messagingTemplate.convertAndSend("/topic/agents/status", agentSnapshot);
-                } catch (Throwable t) {
-                    LOGGER.debug("Failed to push snapshot for agent");
-                }
-
-                LOGGER.info("Scheduled push: broadcasted {} agent snapshots", count);
-               } catch (Throwable t) {
-                LOGGER.error("Scheduled snapshot push failed", t);
-            }
-        }, SNAPSHOT_PUSH_INITIAL_DELAY_MS, SNAPSHOT_PUSH_INTERVAL_MS, TimeUnit.MILLISECONDS);
     }
 
     @PreDestroy
     public void shutdown() {
-        try {
-            scheduler.shutdownNow();
-            scheduler.awaitTermination(2, TimeUnit.SECONDS);
-        } catch (InterruptedException ie) {
-            Thread.currentThread().interrupt();
-        } catch (Throwable t) {
-            LOGGER.debug("Error shutting down scheduler: {}", t.getMessage());
-        }
     }
 
     @GetMapping("/Monitoring/Agent/Landing")
@@ -106,9 +66,6 @@ public class MonitoringAgentController {
         return "agent/monitoring/Create.html";
     }
 
-    // -----------------------
-    // Existing form-backed handler (keeps redirect/flash behavior)
-    // -----------------------
     @PostMapping("/Monitoring/Agent/Create")
     public String createAgent(@ModelAttribute Agent agent, RedirectAttributes redirectAttributes) {
         try {
@@ -121,9 +78,6 @@ public class MonitoringAgentController {
         return "redirect:/Monitoring/Agent/Landing";
     }
 
-    // -----------------------
-    // New JSON-aware endpoint for AJAX clients (consumes JSON)
-    // -----------------------
     @PostMapping(path = "/Monitoring/Agent/Create", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public ResponseEntity<?> createAgentJson(@RequestBody Agent agent) {
@@ -149,7 +103,6 @@ public class MonitoringAgentController {
         }
     }
 
-    // Update handler (form-backed)
     @PostMapping("/Monitoring/Agent/Update")
     public String updateAgent(@ModelAttribute Agent agent, RedirectAttributes redirectAttributes) {
         try {
@@ -162,7 +115,6 @@ public class MonitoringAgentController {
         return "redirect:/Monitoring/Agent/Landing";
     }
 
-    // JSON-aware update endpoint for AJAX
     @PostMapping(path = "/Monitoring/Agent/Update", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public ResponseEntity<?> updateAgentJson(@RequestBody Agent agent) {
@@ -196,7 +148,6 @@ public class MonitoringAgentController {
         return "redirect:/Monitoring/Agent/Landing";
     }
 
-    // optional: edit form endpoint (could be implemented later)
     @GetMapping("/Monitoring/Agent/Edit/{id}")
     public String editForm(@PathVariable("id") Long id, Model model) {
         Agent a = agentService.findById(id);
@@ -205,9 +156,6 @@ public class MonitoringAgentController {
     }
 
 
-    /*
-     * Websocket-based metrics streaming
-     */
     @MessageMapping("/metrics")
     @SendTo("/topic/metrics")
     public String handleMetrics(Message<Metrics> message) {
@@ -232,6 +180,17 @@ public class MonitoringAgentController {
             }
         }
         return "Processed Metrics";
+    }
+
+    @Scheduled(fixedRate = 5000)
+    public void broadcastAgentStatusUpdate() {
+        try {
+            List<Agent> agents = agentService.findAll();
+            agents.forEach(agent -> agentSnapshot.put(agent.getAgentId(), agent));
+            messagingTemplate.convertAndSend("/topic/agents/status", agentSnapshot);
+        } catch (Throwable t) {
+            LOGGER.error("Failed broadcasting agent status update", t);
+        }
     }
 
 }

@@ -6,8 +6,8 @@ import app.dao.model.user.Role;
 import app.dao.service.UserService;
 import app.session.SessionUtil;
 import jakarta.servlet.http.HttpSession;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -23,6 +23,7 @@ import java.util.List;
 public class UserController {
 
     private static final Logger LOGGER = LogManager.getLogger(UserController.class);
+
 
     @Autowired
     private AppProperty appProperty;
@@ -55,7 +56,7 @@ public class UserController {
             authenticated = true;
 
             LOGGER.info("{} Authenticated successfully", systemAdmin.getScreenName());
-            SessionUtil.setActionMsg(session,  systemAdmin.getScreenName() + " logged in as " + systemAdmin.getRole());
+            SessionUtil.setActionMsg(session, systemAdmin.getScreenName() + " logged in as " + systemAdmin.getRole());
             return new RedirectView("/");
 
         } else {
@@ -69,7 +70,7 @@ public class UserController {
                         if (appUser.getPassword().equals(password)) {
                             appUser.setSessionId(session.getId());
                             LOGGER.info("{} Authenticated successfully", userName);
-                            SessionUtil.setActionMsg(session,  appUser.getScreenName() + " logged in as " + appUser.getRole());
+                            SessionUtil.setActionMsg(session, appUser.getScreenName() + " logged in as " + appUser.getRole());
                             return new RedirectView("/");
                         } else {
                             SessionUtil.setErrorMsg(session, "User " + appUser.getScreenName() + " is not recognized");
@@ -98,8 +99,8 @@ public class UserController {
     }
 
     @GetMapping("/AppUser/Landing")
-    public String userLanding() {
-        return "app/user/Landing.html";
+    public RedirectView userLanding() {
+        return new RedirectView("/AppUser/Dashboard");
     }
 
     @GetMapping(value = "/AppUser/Create")

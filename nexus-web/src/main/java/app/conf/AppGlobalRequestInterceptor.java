@@ -31,7 +31,11 @@ public class AppGlobalRequestInterceptor implements HandlerInterceptor {
             "/webjars/bootstrap/5.3.3/js/bootstrap.min.js",
             "/webjars/jquery/3.7.1/jquery.min.js",
             "/webjars/d3js/5.16.0/d3.min.js",
+            "/webjars/sockjs-client/1.6.1/sockjs.min.js",
+            "/webjars/stomp-websocket/2.3.3/stomp.min.js",
             "/js/app.js",
+            "/js/ws-connection.js",
+            "/js/app-websocket.js",
             "/css/app.css",
             "/favicon.ico",
             "/error"

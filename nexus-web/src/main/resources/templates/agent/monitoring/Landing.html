@@ -2,6 +2,9 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <header th:insert="layout/AppLayout.html :: header"></header>
+    <!-- Add SockJS and STOMP libraries using WebJars -->
+    <script th:src="@{/webjars/sockjs-client/1.6.1/sockjs.min.js}"></script>
+    <script th:src="@{/webjars/stomp-websocket/2.3.3/stomp.min.js}"></script>
 </head>
 <body>
 <div th:insert="layout/AppLayout.html :: nav"></div>
@@ -48,6 +51,30 @@
     </div>
 </div>
 
+<!-- Live Events Panel -->
+<div id="live-events-panel" class="live-events-panel" style="display: none;">
+    <div class="live-events-header">
+        <h5>Live Events</h5>
+        <button type="button" onclick="if(window.AppWebsocket) AppWebsocket.toggleLiveEvents();">×</button>
+    </div>
+    <ul id="live-events-list" class="live-events-list"></ul>
+</div>
+
+<script type="text/javascript" th:src="@{/js/ws-connection.js}"></script>
 <script type="text/javascript" th:src="@{/js/app-websocket.js}"></script>
+<script type="text/javascript">
+// Initialize WebSocket connection when page loads
+$(document).ready(function() {
+    if (window.AppWebsocket) {
+        window.AppWebsocket.init({
+            endpointPath: '/ws',
+            topic: '/topic/agents/status',
+            liveEventsPanelId: 'live-events-panel',
+            liveEventsListId: 'live-events-list',
+            liveEventsMax: 50
+        });
+    }
+});
+</script>
 </body>
 </html>

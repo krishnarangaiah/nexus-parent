@@ -22,8 +22,16 @@
             // avoid multiple parallel inits
             if (this.stompClient && this.stompClient.connected) return;
             this.wsUrl = this.buildWsUrl();
+
+            // Use the global Stomp object from stomp-websocket WebJar
+            const StompClient = global.Stomp;
+            if (!StompClient) {
+                this.safeLog('STOMP client not available. Please include STOMP and SockJS libraries.');
+                return;
+            }
+
             // SockJS accepts an endpoint path; keep consistent with project usage
-            this.stompClient = Stomp.over(new SockJS(this.endpointPath));
+            this.stompClient = StompClient.over(new SockJS(this.endpointPath));
             const self = this;
             this.safeLog('Attempting STOMP connect to', this.wsUrl);
             try {
