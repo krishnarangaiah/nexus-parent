@@ -1,327 +1,255 @@
 /**
- * Dashboard WebSocket Integration
+ * Dashboard Real-Time Updates
  *
- * This script connects the dashboard page to real-time WebSocket updates.
- *
- * Topics Subscribed:
- *   /topic/dashboard/kpi     - KPI card updates (agents, deploys, jobs, alerts)
- *   /topic/dashboard/alerts  - Alert notifications
- *   /topic/dashboard/deploys - Deployment status updates
- *
- * UI Elements Updated:
- *   #kpi-active-agents       - Active agents count
- *   #kpi-deployments-today   - Today's deployment count
- *   #kpi-active-jobs         - Active jobs count
- *   #kpi-active-alerts       - Active alerts count
- *   #live-events-list        - Live events panel
- *   #recent-deploys-table    - Recent deployments table
- *
- * TO CUSTOMIZE:
- *   1. Change element IDs in the updateXxx() methods to match your HTML
- *   2. Modify the data handling in onXxxMessage() methods
- *   3. Enable debug mode to see all incoming messages: new DashboardWebSocket({ debug: true })
+ * Subscribes to WebSocket for real-time agent status updates.
+ * Updates the dashboard UI without page refresh when agents connect/disconnect.
  */
 (function(global, $) {
     'use strict';
 
-    class DashboardWebSocket {
+    class DashboardRealtime {
 
         constructor(options = {}) {
             this.debug = options.debug || false;
-            this.connectors = {};
-            this.liveEventsMax = options.liveEventsMax || 50;
-            this.unreadCount = 0;
+            this.stompClient = null;
+            this.connected = false;
         }
 
-        // ==================== INITIALIZATION ====================
-
         /**
-         * Initialize and connect to all dashboard topics.
+         * Connect to WebSocket and subscribe to agent status topic.
          */
         connect() {
-            this.log('Connecting to dashboard topics...');
+            this.log('Connecting to WebSocket...');
 
-            // KPI Updates (every 5 seconds from server)
-            this.connectors.kpi = new PageWebSocket({
-                topic: WsTopics.DASHBOARD_KPI,
-                debug: this.debug,
-                onMessage: this.onKpiMessage.bind(this)
-            }).connect();
+            const socket = new SockJS('/ws');
+            this.stompClient = Stomp.over(socket);
 
-            // Alert Notifications
-            this.connectors.alerts = new PageWebSocket({
-                topic: WsTopics.DASHBOARD_ALERTS,
-                debug: this.debug,
-                onMessage: this.onAlertMessage.bind(this)
-            }).connect();
+            // Disable debug logging from STOMP unless debug mode
+            if (!this.debug) {
+                this.stompClient.debug = null;
+            }
 
-            // Deployment Updates
-            this.connectors.deploys = new PageWebSocket({
-                topic: WsTopics.DASHBOARD_DEPLOYS,
-                debug: this.debug,
-                onMessage: this.onDeployMessage.bind(this)
-            }).connect();
+            const self = this;
+            this.stompClient.connect({}, function(frame) {
+                self.connected = true;
+                self.log('Connected to WebSocket');
+
+                // Subscribe to agent status updates
+                self.stompClient.subscribe('/topic/agents/status', function(message) {
+                    try {
+                        const data = JSON.parse(message.body);
+                        self.handleMessage(data);
+                    } catch (e) {
+                        console.error('Error parsing message:', e);
+                    }
+                });
+
+            }, function(error) {
+                self.connected = false;
+                console.error('WebSocket connection error:', error);
+                // Try to reconnect after 5 seconds
+                setTimeout(function() {
+                    self.connect();
+                }, 5000);
+            });
 
             return this;
         }
 
         /**
-         * Disconnect from all topics.
+         * Handle incoming WebSocket message.
          */
-        disconnect() {
-            Object.values(this.connectors).forEach(c => c.disconnect());
-            this.log('Disconnected from all topics');
+        handleMessage(data) {
+            this.log('Received:', data);
+
+            switch (data.type) {
+                case 'agent_connected':
+                    this.onAgentConnected(data);
+                    break;
+                case 'agent_disconnected':
+                    this.onAgentDisconnected(data);
+                    break;
+                case 'dashboard_stats':
+                    this.onDashboardStats(data);
+                    break;
+                default:
+                    this.log('Unknown message type:', data.type);
+            }
         }
 
-        // ==================== MESSAGE HANDLERS ====================
+        /**
+         * Handle agent connected event.
+         */
+        onAgentConnected(data) {
+            this.log('Agent connected:', data.agentUuid);
+
+            // Update agent row status
+            this.updateAgentStatus(data.agentUuid, 'ONLINE', data.displayName, data.hostname);
+
+            // Show notification
+            this.showNotification('success',
+                `Agent "${data.displayName || data.agentUuid}" connected`);
+        }
 
         /**
-         * Handle KPI updates from server.
-         * Data format: { activeAgents, deploymentsToday, activeJobs, activeAlerts }
+         * Handle agent disconnected event.
          */
-        onKpiMessage(data) {
-            this.log('KPI update:', data);
+        onAgentDisconnected(data) {
+            this.log('Agent disconnected:', data.agentUuid);
+
+            // Update agent row status
+            this.updateAgentStatus(data.agentUuid, 'OFFLINE', data.displayName);
+
+            // Show notification
+            this.showNotification('warning',
+                `Agent "${data.displayName || data.agentUuid}" disconnected`);
+        }
+
+        /**
+         * Handle dashboard stats update.
+         */
+        onDashboardStats(data) {
+            this.log('Dashboard stats:', data);
 
             // Update KPI cards
-            this.updateKpiCard('#kpi-active-agents', data.activeAgents);
-            this.updateKpiCard('#kpi-deployments-today', data.deploymentsToday);
-            this.updateKpiCard('#kpi-active-jobs', data.activeJobs);
-            this.updateKpiCard('#kpi-active-alerts', data.activeAlerts);
+            this.updateElement('#total-agents', data.totalAgents);
+            this.updateElement('#online-agents', data.onlineAgents);
 
-            // Also try alternative selectors (for flexibility)
-            this.updateKpiCard('#activeAgentCountDivId', data.activeAgents);
+            // Also update any elements with data-stat attributes
+            $('[data-stat="totalAgents"]').text(data.totalAgents);
+            $('[data-stat="onlineAgents"]').text(data.onlineAgents);
         }
 
         /**
-         * Handle alert notifications from server.
-         * Data format: { alertId, severity, title, message, timestamp }
+         * Update agent status in the table.
          */
-        onAlertMessage(data) {
-            this.log('Alert:', data);
+        updateAgentStatus(agentUuid, status, displayName, hostname) {
+            // Find the agent row by UUID
+            const $row = $(`tr[data-agent-uuid="${agentUuid}"]`);
 
-            // Add to live events
-            this.addLiveEvent('alert', data);
-
-            // Show toast notification (if you have a toast system)
-            this.showToast(data.severity, data.title, data.message);
-
-            // Update notification badge
-            this.incrementNotificationBadge();
-        }
-
-        /**
-         * Handle deployment updates from server.
-         * Data format: { serviceName, version, status, timestamp }
-         */
-        onDeployMessage(data) {
-            this.log('Deployment:', data);
-
-            // Add to live events
-            this.addLiveEvent('deploy', data);
-
-            // Add to recent deploys table
-            this.addDeployRow(data);
-
-            // Update notification badge
-            this.incrementNotificationBadge();
-        }
-
-        // ==================== UI UPDATE METHODS ====================
-
-        /**
-         * Update a KPI card with animated counter.
-         */
-        updateKpiCard(selector, value) {
-            const $el = $(selector);
-            if (!$el.length) return;
-
-            const currentValue = parseInt($el.text()) || 0;
-            if (currentValue === value) return;
-
-            // Animate the number change
-            $({ count: currentValue }).animate({ count: value }, {
-                duration: 400,
-                step: function() {
-                    $el.text(Math.floor(this.count));
-                },
-                complete: function() {
-                    $el.text(value);
+            if ($row.length > 0) {
+                // Update status badge
+                const $statusCell = $row.find('.agent-status');
+                if (status === 'ONLINE') {
+                    $statusCell.html('<span class="badge bg-success"><i class="bi bi-circle-fill me-1" style="font-size: 0.5rem;"></i>Online</span>');
+                } else {
+                    $statusCell.html('<span class="badge bg-secondary"><i class="bi bi-circle-fill me-1" style="font-size: 0.5rem;"></i>Offline</span>');
                 }
+
+                // Update hostname if provided
+                if (hostname) {
+                    $row.find('.agent-hostname').text(hostname);
+                }
+
+                // Highlight the row briefly
+                $row.addClass('table-highlight');
+                setTimeout(function() {
+                    $row.removeClass('table-highlight');
+                }, 2000);
+            }
+
+            // Also update agent cards if present (on Console page)
+            const $card = $(`.agent-card[data-uuid="${agentUuid}"]`);
+            if ($card.length > 0) {
+                const $dot = $card.find('.agent-status-dot');
+                if (status === 'ONLINE') {
+                    $card.removeClass('offline');
+                    $card.attr('data-connected', 'true');
+                    $dot.removeClass('offline').addClass('online');
+                } else {
+                    $card.addClass('offline');
+                    $card.attr('data-connected', 'false');
+                    $dot.removeClass('online').addClass('offline');
+                }
+            }
+        }
+
+        /**
+         * Update element text with animation.
+         */
+        updateElement(selector, value) {
+            const $el = $(selector);
+            if ($el.length > 0) {
+                const oldValue = parseInt($el.text()) || 0;
+                if (oldValue !== value) {
+                    $el.text(value);
+                    $el.addClass('value-changed');
+                    setTimeout(function() {
+                        $el.removeClass('value-changed');
+                    }, 1000);
+                }
+            }
+        }
+
+        /**
+         * Show a toast notification.
+         */
+        showNotification(type, message) {
+            // Check if we have a toast container
+            let $container = $('#toast-container');
+            if ($container.length === 0) {
+                $container = $('<div id="toast-container" class="toast-container position-fixed bottom-0 end-0 p-3"></div>');
+                $('body').append($container);
+            }
+
+            const bgClass = type === 'success' ? 'bg-success' :
+                           type === 'warning' ? 'bg-warning' :
+                           type === 'error' ? 'bg-danger' : 'bg-info';
+
+            const $toast = $(`
+                <div class="toast align-items-center text-white ${bgClass} border-0" role="alert">
+                    <div class="d-flex">
+                        <div class="toast-body">${this.escapeHtml(message)}</div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                    </div>
+                </div>
+            `);
+
+            $container.append($toast);
+            const toast = new bootstrap.Toast($toast[0], { delay: 4000 });
+            toast.show();
+
+            // Remove from DOM after hidden
+            $toast.on('hidden.bs.toast', function() {
+                $(this).remove();
             });
         }
 
-        /**
-         * Add a row to the recent deployments table.
-         */
-        addDeployRow(deploy) {
-            const $table = $('#recent-deploys-table tbody');
-            if (!$table.length) return;
-
-            // Determine status badge color
-            const badgeClass = {
-                'Success': 'bg-success',
-                'Partial': 'bg-warning',
-                'Failed': 'bg-danger'
-            }[deploy.status] || 'bg-secondary';
-
-            const $row = $(`
-                <tr class="fade-in">
-                    <td>${deploy.serviceName}</td>
-                    <td>${deploy.version}</td>
-                    <td><span class="badge ${badgeClass}">${deploy.status}</span></td>
-                    <td>${deploy.timestamp}</td>
-                </tr>
-            `);
-
-            // Add to top of table
-            $table.prepend($row);
-
-            // Keep only last 10 rows
-            $table.find('tr').slice(10).remove();
+        escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
         /**
-         * Add an event to the live events panel.
+         * Disconnect from WebSocket.
          */
-        addLiveEvent(type, data) {
-            const $list = $('#live-events-list');
-            if (!$list.length) return;
-
-            // Remove "no events" placeholder
-            $list.find('.no-events').remove();
-
-            // Format the event
-            const icon = this.getEventIcon(type);
-            const label = this.getEventLabel(type, data);
-
-            const $item = $(`
-                <li class="list-group-item d-flex justify-content-between align-items-start">
-                    <div>
-                        <span class="me-2">${icon}</span>
-                        <span>${label}</span>
-                    </div>
-                    <small class="text-muted">${data.timestamp || 'now'}</small>
-                </li>
-            `);
-
-            $list.prepend($item);
-
-            // Trim to max size
-            $list.find('li').slice(this.liveEventsMax).remove();
-
-            // Update event count
-            const count = $list.find('li').length;
-            $('#live-events-count').text(count + ' events');
-        }
-
-        /**
-         * Get icon for event type.
-         */
-        getEventIcon(type) {
-            const icons = {
-                'kpi': '📊',
-                'alert': '🔔',
-                'deploy': '🚀'
-            };
-            return icons[type] || '📌';
-        }
-
-        /**
-         * Get display label for event.
-         */
-        getEventLabel(type, data) {
-            if (type === 'alert') {
-                return `<strong>${data.title}</strong>: ${data.message}`;
-            }
-            if (type === 'deploy') {
-                return `<strong>${data.serviceName}</strong> v${data.version} - ${data.status}`;
-            }
-            return JSON.stringify(data).substring(0, 80);
-        }
-
-        /**
-         * Show a toast notification (requires Bootstrap toast or similar).
-         */
-        showToast(severity, title, message) {
-            // If you have a toast container, create and show toast here
-            // For now, just log to console
-            const prefix = severity === 'danger' ? '❌' : severity === 'warning' ? '⚠️' : 'ℹ️';
-            console.log(`${prefix} ${title}: ${message}`);
-        }
-
-        /**
-         * Increment the notification badge counter.
-         */
-        incrementNotificationBadge() {
-            this.unreadCount = Math.min(this.unreadCount + 1, 99);
-            const $badge = $('#notif-badge');
-            if ($badge.length) {
-                $badge.text(this.unreadCount).show();
+        disconnect() {
+            if (this.stompClient && this.connected) {
+                this.stompClient.disconnect();
+                this.connected = false;
+                this.log('Disconnected');
             }
         }
-
-        /**
-         * Clear notification badge (call when user opens notifications).
-         */
-        clearNotificationBadge() {
-            this.unreadCount = 0;
-            $('#notif-badge').text('0').hide();
-        }
-
-        /**
-         * Toggle the live events panel visibility.
-         */
-        toggleLiveEvents() {
-            const $panel = $('#live-events-card');
-            if ($panel.is(':visible')) {
-                $panel.slideUp();
-            } else {
-                $panel.slideDown();
-                this.clearNotificationBadge();
-            }
-        }
-
-        /**
-         * Clear all live events.
-         */
-        clearLiveEvents() {
-            $('#live-events-list').empty().append(
-                '<li class="list-group-item no-events text-muted">No events yet</li>'
-            );
-            $('#live-events-count').text('0 events');
-        }
-
-        // ==================== UTILITY METHODS ====================
 
         log(...args) {
             if (this.debug) {
-                console.log('[Dashboard]', ...args);
+                console.log('[DashboardRealtime]', ...args);
             }
         }
     }
 
-    // ==================== AUTO-INITIALIZATION ====================
-
+    // Auto-initialize on page load
     let instance = null;
 
     $(document).ready(function() {
-        // Auto-connect when page loads
-        instance = new DashboardWebSocket({
-            debug: false  // Set to true to see all WebSocket messages
-        }).connect();
-
-        // Expose instance globally for debugging
-        global.dashboardWs = instance;
+        // Only connect if SockJS and Stomp are available
+        if (typeof SockJS !== 'undefined' && typeof Stomp !== 'undefined') {
+            instance = new DashboardRealtime({ debug: false }).connect();
+            global.dashboardRealtime = instance;
+        }
     });
 
-    // ==================== GLOBAL EXPORTS ====================
-
-    // Export class for manual instantiation
-    global.DashboardWebSocket = DashboardWebSocket;
-
-    // Helper function for notification toggle button
-    global.toggleLiveEvents = function() {
-        if (instance) instance.toggleLiveEvents();
-    };
+    global.DashboardRealtime = DashboardRealtime;
 
 })(window, jQuery);

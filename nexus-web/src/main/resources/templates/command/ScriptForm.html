@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <header th:insert="layout/AppLayout.html :: header"></header>
+    <title th:text="${script.id != null} ? 'Edit Script' : 'Create Script'">Script Form</title>
+    <style>
+        .script-editor {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            tab-size: 4;
+        }
+    </style>
+</head>
+<body>
+<div th:insert="layout/AppLayout.html :: nav"></div>
+<div th:replace="layout/AppLayout.html :: sidebar"></div>
+
+<div class="main-content">
+    <div class="container-fluid px-3">
+        <div class="page-hero">
+            <div>
+                <h1 class="page-title">
+                    <i class="bi bi-code-slash me-2" style="color: var(--color-primary);"></i>
+                    <span th:text="${script.id != null} ? 'Edit Script' : 'Create New Script'">Script Form</span>
+                </h1>
+                <p class="page-subtitle mb-0">Define a Groovy script command</p>
+            </div>
+            <div>
+                <a th:href="@{/Command/Scripts}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>Back to Scripts
+                </a>
+            </div>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="card">
+                    <div class="card-body">
+                        <form th:action="@{/Command/Script/Save}" method="post">
+                            <input type="hidden" th:name="${_csrf?.parameterName}" th:value="${_csrf?.token}"/>
+                            <input type="hidden" name="id" th:value="${script.id}"/>
+                            <input type="hidden" name="version" th:value="${script.version}"/>
+                            <input type="hidden" name="createdBy" th:value="${script.createdBy}"/>
+                            <input type="hidden" name="createdAt" th:value="${script.createdAt}"/>
+                            <input type="hidden" name="builtIn" th:value="${script.builtIn}"/>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Name (unique identifier) <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="name"
+                                           required pattern="[a-z0-9-]+"
+                                           placeholder="e.g., list-processes"
+                                           th:value="${script.name}"
+                                           th:readonly="${script.builtIn}">
+                                    <small class="text-muted">Lowercase letters, numbers, and hyphens only</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Display Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="displayName"
+                                           required placeholder="e.g., List Processes"
+                                           th:value="${script.displayName}">
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Category</label>
+                                    <input type="text" class="form-control" name="category"
+                                           list="categories" placeholder="e.g., System"
+                                           th:value="${script.category}">
+                                    <datalist id="categories">
+                                        <option value="General">
+                                        <option value="System">
+                                        <option value="File System">
+                                        <option value="Network">
+                                        <option value="Deployment">
+                                        <option value="Monitoring">
+                                    </datalist>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Default Timeout (ms)</label>
+                                    <input type="number" class="form-control" name="defaultTimeoutMs"
+                                           min="1000" step="1000" placeholder="30000"
+                                           th:value="${script.defaultTimeoutMs}">
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Description</label>
+                                <textarea class="form-control" name="description" rows="2"
+                                          placeholder="Describe what this script does..."
+                                          th:text="${script.description}"></textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    Groovy Script <span class="text-danger">*</span>
+                                    <a href="https://groovy-lang.org/documentation.html" target="_blank"
+                                       class="ms-2 small">
+                                        <i class="bi bi-question-circle"></i> Groovy Docs
+                                    </a>
+                                </label>
+                                <textarea class="form-control script-editor" name="scriptContent"
+                                          rows="15" required
+                                          placeholder="// Your Groovy script here
+// Available variables:
+//   args - command arguments
+
+return 'Hello, World!'"
+                                          th:text="${script.scriptContent}"></textarea>
+                                <small class="text-muted">
+                                    Available variables: <code>args</code> (arguments), <code>out</code> (PrintWriter for output)
+                                </small>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" name="active" id="activeCheck"
+                                           th:checked="${script.active != false}">
+                                    <label class="form-check-label" for="activeCheck">Active (available for execution)</label>
+                                </div>
+                            </div>
+
+                            <hr>
+
+                            <div class="d-flex justify-content-between">
+                                <a th:href="@{/Command/Scripts}" class="btn btn-outline-secondary">
+                                    <i class="bi bi-arrow-left me-1"></i>Cancel
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-check-lg me-1"></i>Save Script
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

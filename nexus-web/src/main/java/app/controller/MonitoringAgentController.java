@@ -2,42 +2,30 @@ package app.controller;
 
 import app.dao.model.monitoring.Agent;
 import app.dao.model.monitoring.AgentService;
-import app.websocket.dto.Metrics;
 import app.websocket.publisher.AgentPublisher;
-import com.google.gson.Gson;
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.SendTo;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
-/*
-    Enhanced: maintain a server-side view of connected agents (last-seen)
-    and broadcast status updates to /topic/agents/status so Dashboard.html can update live.
-*/
+/**
+ * Agent Monitoring Controller
+ *
+ * Handles agent CRUD operations and the agent list page.
+ */
 @Controller
 public class MonitoringAgentController {
 
-    private static final Gson GSON = new Gson();
     private static final Logger LOGGER = LogManager.getLogger(MonitoringAgentController.class);
-    private final Map<String, Agent> agentSnapshot = Collections.synchronizedMap(new java.util.HashMap<>());
-
 
     @Autowired
     private AgentService agentService;
@@ -45,32 +33,33 @@ public class MonitoringAgentController {
     @Autowired
     private AgentPublisher agentPublisher;
 
-    @PostConstruct
-    public void init() {
-    }
-
-    @PreDestroy
-    public void shutdown() {
-    }
-
     @GetMapping("/Monitoring/Agent/Landing")
     public String landing(Model model) {
         LOGGER.info("Agent Monitoring Controller accessed.");
         model.addAttribute("agents", agentService.findAll());
+        model.addAttribute("onlineCount", agentService.countOnline());
         return "agent/monitoring/Landing.html";
     }
 
     @GetMapping("/Monitoring/Agent/CreateForm")
-    public String getCreateForm() {
+    public String getCreateForm(Model model) {
         LOGGER.info("Agent Monitoring Create Form accessed.");
+        model.addAttribute("agent", new Agent());
         return "agent/monitoring/Create.html";
     }
 
     @PostMapping("/Monitoring/Agent/Create")
     public String createAgent(@ModelAttribute Agent agent, RedirectAttributes redirectAttributes) {
         try {
+            // Set defaults
+            if (agent.getStatus() == null) {
+                agent.setStatus(Agent.STATUS_OFFLINE);
+            }
+            if (agent.getEnabled() == null) {
+                agent.setEnabled(true);
+            }
             agentService.save(agent);
-            redirectAttributes.addFlashAttribute("actionMsg", "Agent created successfully");
+            redirectAttributes.addFlashAttribute("actionMsg", "Agent registered successfully. UUID: " + agent.getAgentUuid());
         } catch (Exception e) {
             LOGGER.error("Failed to create agent", e);
             redirectAttributes.addFlashAttribute("errorMsg", "Failed to create agent: " + e.getMessage());
@@ -82,24 +71,23 @@ public class MonitoringAgentController {
     @ResponseBody
     public ResponseEntity<?> createAgentJson(@RequestBody Agent agent) {
         if (agent == null) {
-            return ResponseEntity.badRequest().body(Collections.singletonMap("error", "Request body is empty or invalid"));
+            return ResponseEntity.badRequest().body(Collections.singletonMap("error", "Request body is empty"));
         }
-        // basic server-side validation
-        if (agent.getAgentId() == null || agent.getAgentId().trim().isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Collections.singletonMap("error", "agentId is required"));
+        if (agent.getAgentUuid() == null || agent.getAgentUuid().trim().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Collections.singletonMap("error", "agentUuid is required"));
         }
         if (agent.getDisplayName() == null || agent.getDisplayName().trim().isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Collections.singletonMap("error", "displayName is required"));
         }
 
         try {
+            if (agent.getStatus() == null) agent.setStatus(Agent.STATUS_OFFLINE);
+            if (agent.getEnabled() == null) agent.setEnabled(true);
             Agent saved = agentService.save(agent);
-            // return created entity (or minimal success payload)
             return ResponseEntity.status(HttpStatus.CREATED).body(saved);
         } catch (Exception e) {
             LOGGER.error("Failed to create agent (JSON)", e);
-            Map<String, String> body = Collections.singletonMap("error", e.getMessage() != null ? e.getMessage() : "Failed to create agent");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Collections.singletonMap("error", e.getMessage()));
         }
     }
 
@@ -113,27 +101,6 @@ public class MonitoringAgentController {
             redirectAttributes.addFlashAttribute("errorMsg", "Failed to update agent: " + e.getMessage());
         }
         return "redirect:/Monitoring/Agent/Landing";
-    }
-
-    @PostMapping(path = "/Monitoring/Agent/Update", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    @ResponseBody
-    public ResponseEntity<?> updateAgentJson(@RequestBody Agent agent) {
-        if (agent == null) {
-            return ResponseEntity.badRequest().body(Collections.singletonMap("error", "Request body is empty or invalid"));
-        }
-        if (agent.getAgentId() == null || agent.getAgentId().trim().isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Collections.singletonMap("error", "agentId is required"));
-        }
-        if (agent.getDisplayName() == null || agent.getDisplayName().trim().isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Collections.singletonMap("error", "displayName is required"));
-        }
-        try {
-            Agent saved = agentService.save(agent);
-            return ResponseEntity.ok(saved);
-        } catch (Exception e) {
-            LOGGER.error("Failed to update agent (JSON)", e);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Collections.singletonMap("error", e.getMessage() != null ? e.getMessage() : "Failed to update agent"));
-        }
     }
 
     @PostMapping("/Monitoring/Agent/Delete/{id}")
@@ -150,47 +117,12 @@ public class MonitoringAgentController {
 
     @GetMapping("/Monitoring/Agent/Edit/{id}")
     public String editForm(@PathVariable("id") Long id, Model model) {
-        Agent a = agentService.findById(id);
-        model.addAttribute("agent", a);
-        return "agent/monitoring/Edit.html"; // implement later
-    }
-
-
-    @MessageMapping("/metrics")
-    @SendTo("/topic/metrics")
-    public String handleMetrics(Message<Metrics> message) {
-
-        Metrics metrics = message == null ? null : message.getPayload();
-        if (metrics != null) {
-            try {
-                String agentId = metrics.getAgentId();
-                LOGGER.info("Received metrics from agentId: {}", agentId);
-                try {
-                    Agent agent = agentService.findByAgentId(agentId);
-                    if (agent != null) {
-                        agent.setHeartbeat(new Random().nextLong());
-                        agentSnapshot.put(agentId, agent);
-                    }
-                } catch (Throwable t) {
-                    LOGGER.debug("Failed retrieving DB agent info for displayName: {}", t.getMessage());
-                }
-            } catch (Exception e) {
-                LOGGER.error("Failed processing metrics payload", e);
-                return "Processing error";
-            }
+        Agent agent = agentService.findById(id);
+        if (agent == null) {
+            return "redirect:/Monitoring/Agent/Landing";
         }
-        return "Processed Metrics";
-    }
-
-    @Scheduled(fixedRate = 5000)
-    public void broadcastAgentStatusUpdate() {
-        try {
-            List<Agent> agents = agentService.findAll();
-            agents.forEach(agent -> agentSnapshot.put(agent.getAgentId(), agent));
-            agentPublisher.publishAgentStatusBulk(agentSnapshot);
-        } catch (Throwable t) {
-            LOGGER.error("Failed broadcasting agent status update", t);
-        }
+        model.addAttribute("agent", agent);
+        return "agent/monitoring/Edit.html";
     }
 
 }

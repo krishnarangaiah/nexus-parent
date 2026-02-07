@@ -2,244 +2,278 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <header th:insert="layout/AppLayout.html :: header"></header>
+    <title>Dashboard</title>
 </head>
 <body>
-<!-- Page loader is now handled by the unified page transition in layout -->
-
 <div th:insert="layout/AppLayout.html :: nav"></div>
 <div th:replace="layout/AppLayout.html :: sidebar"></div>
 
 <div class="main-content">
     <div class="container-fluid px-3">
 
-        <!-- Page Hero -->
+        <!-- Page Header -->
         <div class="page-hero">
             <div>
                 <h1 class="page-title">
                     <i class="bi bi-speedometer2 me-2" style="color: var(--color-primary);"></i>
-                   <span th:text="${appProperty.appName}"></span> Dashboard
+                    <span th:text="${appProperty.appName}">Nexus</span> Dashboard
                 </h1>
-                <p class="page-subtitle mb-0">Welcome back! Here's your system overview</p>
-            </div>
-            <div class="d-flex gap-2 align-items-center">
-                <button id="notif-btn"
-                        class="btn btn-outline-secondary btn-sm position-relative"
-                        type="button"
-                        aria-label="Notifications"
-                        onclick="openLiveEvents(event)">
-                    <i class="bi bi-bell"></i>
-                    <span id="notif-badge"
-                          class="position-absolute top-0 start-100 translate-middle badge rounded-pill"
-                          style="display:none;">0</span>
-                </button>
-                <button class="btn btn-outline-secondary btn-sm">
-                    <i class="bi bi-arrow-clockwise me-1"></i> Refresh
-                </button>
-                <button class="btn btn-primary btn-sm">
-                    <i class="bi bi-plus-lg me-1"></i> Create
-                </button>
+                <p class="page-subtitle mb-0">Agent Management & Command Center</p>
             </div>
         </div>
 
-        <!-- KPI Cards Row -->
-        <div class="row mb-3">
-            <div class="col-12">
-                <div class="dashboard-grid">
-
-                    <!-- Active Agents -->
-                    <div id="agentSummaryCardId"
-                         class="custom-card kpi-card-span-3 d-flex align-items-center p-2"
-                         data-href="/Monitoring/Agent/Landing"
-                         data-method="GET"
-                         onclick="wrapCardOnClick(event, '/Monitoring/Agent/Landing', 'GET')"
-                         style="cursor: pointer;">
-                        <div class="stat-icon primary me-2">
-                            <i class="bi bi-pc-display-horizontal"></i>
+        <!-- KPI Cards -->
+        <div class="row mb-4">
+            <!-- Total Agents -->
+            <div class="col-md-3">
+                <div class="card h-100">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="rounded-circle p-3 me-3" style="background-color: rgba(13, 110, 253, 0.1);">
+                            <i class="bi bi-pc-display-horizontal text-primary" style="font-size: 1.5rem;"></i>
                         </div>
-                        <div class="flex-grow-1">
-                            <div id="activeAgentCountDivId" class="stat-value" data-count="12">0</div>
-                            <div class="stat-label">Active Agents</div>
-                        </div>
-                        <div class="text-success small">
-                            <i class="bi bi-arrow-up"></i> 8%
+                        <div>
+                            <h3 id="total-agents" class="mb-0" data-stat="totalAgents" th:text="${totalAgents}">0</h3>
+                            <small class="text-muted">Total Agents</small>
                         </div>
                     </div>
+                    <div class="card-footer bg-transparent border-0 pt-0">
+                        <a th:href="@{/Monitoring/Agent/Landing}" class="text-decoration-none small">
+                            View all <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
 
-                    <!-- Deployments Today -->
-                    <div class="custom-card kpi-card-span-3 d-flex align-items-center p-2"
-                         style="cursor: pointer;">
-                        <div class="stat-icon success me-2">
-                            <i class="bi bi-rocket-takeoff"></i>
+            <!-- Online Agents -->
+            <div class="col-md-3">
+                <div class="card h-100">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="rounded-circle p-3 me-3" style="background-color: rgba(25, 135, 84, 0.1);">
+                            <i class="bi bi-broadcast text-success" style="font-size: 1.5rem;"></i>
                         </div>
-                        <div class="flex-grow-1">
-                            <div class="stat-value" data-count="24">0</div>
-                            <div class="stat-label">Deployments Today</div>
-                        </div>
-                        <div class="text-success small">
-                            <i class="bi bi-arrow-up"></i> 12%
+                        <div>
+                            <h3 id="online-agents" class="mb-0" data-stat="onlineAgents" th:text="${onlineAgents}">0</h3>
+                            <small class="text-muted">Agents Online</small>
                         </div>
                     </div>
+                    <div class="card-footer bg-transparent border-0 pt-0">
+                        <a th:href="@{/Command/Console}" class="text-decoration-none small">
+                            Send command <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
 
-                    <!-- Active Jobs -->
-                    <div class="custom-card kpi-card-span-3 d-flex align-items-center p-2"
-                         style="cursor: pointer;">
-                        <div class="stat-icon warning me-2">
-                            <i class="bi bi-gear-wide-connected"></i>
+            <!-- Scripts -->
+            <div class="col-md-3">
+                <div class="card h-100">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="rounded-circle p-3 me-3" style="background-color: rgba(255, 193, 7, 0.1);">
+                            <i class="bi bi-code-slash text-warning" style="font-size: 1.5rem;"></i>
                         </div>
-                        <div class="flex-grow-1">
-                            <div class="stat-value" data-count="7">0</div>
-                            <div class="stat-label">Active Jobs</div>
-                        </div>
-                        <div class="text-muted small">
-                            <i class="bi bi-dash"></i> 0%
+                        <div>
+                            <h3 class="mb-0" th:text="${totalScripts}">0</h3>
+                            <small class="text-muted">Command Scripts</small>
                         </div>
                     </div>
+                    <div class="card-footer bg-transparent border-0 pt-0">
+                        <a th:href="@{/Command/Scripts}" class="text-decoration-none small">
+                            Manage scripts <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
 
-                    <!-- Alerts -->
-                    <div class="custom-card kpi-card-span-3 d-flex align-items-center p-2"
-                         style="cursor: pointer;">
-                        <div class="stat-icon danger me-2">
-                            <i class="bi bi-exclamation-triangle"></i>
+            <!-- Today's Executions -->
+            <div class="col-md-3">
+                <div class="card h-100">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="rounded-circle p-3 me-3" style="background-color: rgba(111, 66, 193, 0.1);">
+                            <i class="bi bi-terminal text-purple" style="font-size: 1.5rem; color: #6f42c1;"></i>
                         </div>
-                        <div class="flex-grow-1">
-                            <div class="stat-value" data-count="3">0</div>
-                            <div class="stat-label">Active Alerts</div>
-                        </div>
-                        <div class="text-danger small">
-                            <i class="bi bi-arrow-up"></i> 2 new
+                        <div>
+                            <h3 class="mb-0" th:text="${todayExecutions}">0</h3>
+                            <small class="text-muted">Executions Today</small>
                         </div>
                     </div>
-
+                    <div class="card-footer bg-transparent border-0 pt-0">
+                        <a th:href="@{/Command/History}" class="text-decoration-none small">
+                            View history <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Main Content Row -->
+        <!-- Main Content -->
+        <div class="row">
+            <!-- Agents List -->
+            <div class="col-lg-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-pc-display-horizontal me-2"></i>Registered Agents</span>
+                        <a th:href="@{/Monitoring/Agent/CreateForm}" class="btn btn-sm btn-primary">
+                            <i class="bi bi-plus-lg"></i> Add
+                        </a>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Agent</th>
+                                        <th>Host</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="agent : ${agents}" th:data-agent-uuid="${agent.agentUuid}">
+                                        <td>
+                                            <strong th:text="${agent.displayName}">Agent Name</strong>
+                                            <br>
+                                            <small class="text-muted" th:text="${agent.agentUuid}">uuid</small>
+                                        </td>
+                                        <td class="agent-hostname" th:text="${agent.hostname ?: '-'}">hostname</td>
+                                        <td class="agent-status">
+                                            <span th:if="${agent.status == 'ONLINE'}" class="badge bg-success">
+                                                <i class="bi bi-circle-fill me-1" style="font-size: 0.5rem;"></i>Online
+                                            </span>
+                                            <span th:if="${agent.status != 'ONLINE'}" class="badge bg-secondary">
+                                                <i class="bi bi-circle-fill me-1" style="font-size: 0.5rem;"></i>Offline
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <a th:if="${agent.status == 'ONLINE'}"
+                                               th:href="@{/Command/Console}"
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-terminal"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${#lists.isEmpty(agents)}">
+                                        <td colspan="4" class="text-center text-muted py-4">
+                                            No agents registered.
+                                            <a th:href="@{/Monitoring/Agent/CreateForm}">Register your first agent</a>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Executions -->
+            <div class="col-lg-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-clock-history me-2"></i>Recent Executions</span>
+                        <a th:href="@{/Command/History}" class="btn btn-sm btn-outline-secondary">
+                            View All
+                        </a>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Command</th>
+                                        <th>Agent</th>
+                                        <th>Status</th>
+                                        <th>Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="exec : ${recentExecutions}">
+                                        <td th:text="${exec.script?.displayName ?: 'Unknown'}">Command</td>
+                                        <td th:text="${exec.agent?.displayName ?: '-'}">Agent</td>
+                                        <td>
+                                            <span th:if="${exec.status == 'SUCCESS'}" class="badge bg-success">Success</span>
+                                            <span th:if="${exec.status == 'FAILED'}" class="badge bg-danger">Failed</span>
+                                            <span th:if="${exec.status == 'PENDING'}" class="badge bg-warning text-dark">Pending</span>
+                                            <span th:if="${exec.status == 'ERROR'}" class="badge bg-danger">Error</span>
+                                            <span th:if="${exec.status == 'TIMEOUT'}" class="badge bg-secondary">Timeout</span>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted" th:text="${exec.sentAtTimeOnly}">-</small>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${#lists.isEmpty(recentExecutions)}">
+                                        <td colspan="4" class="text-center text-muted py-4">
+                                            No commands executed yet.
+                                            <a th:href="@{/Command/Console}">Send your first command</a>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
         <div class="row">
             <div class="col-12">
-                <div class="dashboard-grid">
-
-                    <!-- Traffic Chart -->
-                    <div class="custom-card chart-card p-2 d-flex flex-column">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div>
-                                <h5 class="mb-0" style="font-weight: 600; font-size: 0.95rem;">Traffic Overview</h5>
-                                <small class="text-muted" style="font-size: 0.75rem;">Last 7 days performance</small>
+                <div class="card">
+                    <div class="card-header">
+                        <i class="bi bi-lightning me-2"></i>Quick Actions
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <a th:href="@{/Monitoring/Agent/CreateForm}" class="btn btn-outline-primary w-100">
+                                    <i class="bi bi-plus-circle me-2"></i>Register Agent
+                                </a>
                             </div>
-                            <div class="btn-group btn-group-sm">
-                                <button class="btn btn-outline-secondary active" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">Week</button>
-                                <button class="btn btn-outline-secondary" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">Month</button>
-                                <button class="btn btn-outline-secondary" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">Year</button>
+                            <div class="col-md-3">
+                                <a th:href="@{/Command/Console}" class="btn btn-outline-success w-100">
+                                    <i class="bi bi-terminal me-2"></i>Command Console
+                                </a>
                             </div>
-                        </div>
-                        <div id="dashboard-chart" style="flex: 1; min-height: 220px;">
-                            <div class="skeleton-loader"></div>
+                            <div class="col-md-3">
+                                <a th:href="@{/Command/Script/Create}" class="btn btn-outline-warning w-100">
+                                    <i class="bi bi-code-slash me-2"></i>Create Script
+                                </a>
+                            </div>
+                            <div class="col-md-3">
+                                <a th:href="@{/Command/History}" class="btn btn-outline-info w-100">
+                                    <i class="bi bi-clock-history me-2"></i>View History
+                                </a>
+                            </div>
                         </div>
                     </div>
-
-                    <!-- Side Column -->
-                    <div class="side-column">
-
-                        <!-- Recent Deploys -->
-                        <div class="custom-card p-2">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <h6 class="mb-0" style="font-weight: 600; font-size: 0.9rem;">Recent Deploys</h6>
-                                <span class="badge bg-primary" style="font-size: 0.65rem;">Last 24h</span>
-                            </div>
-                            <div class="table-responsive">
-                                <table class="table table-sm mb-0 recent-table" style="font-size: 0.8rem;">
-                                    <thead>
-                                    <tr>
-                                        <th style="padding: 0.5rem;">Service</th>
-                                        <th style="padding: 0.5rem;">Version</th>
-                                        <th style="padding: 0.5rem;">Status</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    <tr>
-                                        <td style="padding: 0.5rem;">
-                                            <i class="bi bi-box-seam me-1 text-primary"></i>
-                                            service-a
-                                        </td>
-                                        <td style="padding: 0.5rem;"><code>v1.4.2</code></td>
-                                        <td style="padding: 0.5rem;"><span class="badge bg-success" style="font-size: 0.65rem;">Success</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding: 0.5rem;">
-                                            <i class="bi bi-shield-lock me-1 text-primary"></i>
-                                            auth
-                                        </td>
-                                        <td style="padding: 0.5rem;"><code>v2.0.0</code></td>
-                                        <td style="padding: 0.5rem;"><span class="badge bg-warning text-dark" style="font-size: 0.65rem;">Partial</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding: 0.5rem;">
-                                            <i class="bi bi-cpu me-1 text-primary"></i>
-                                            worker
-                                        </td>
-                                        <td style="padding: 0.5rem;"><code>v1.1.0</code></td>
-                                        <td style="padding: 0.5rem;"><span class="badge bg-success" style="font-size: 0.65rem;">Success</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding: 0.5rem;">
-                                            <i class="bi bi-database me-1 text-primary"></i>
-                                            data-sync
-                                        </td>
-                                        <td style="padding: 0.5rem;"><code>v3.2.1</code></td>
-                                        <td style="padding: 0.5rem;"><span class="badge bg-success" style="font-size: 0.65rem;">Success</span></td>
-                                    </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        <!-- Quick Actions -->
-                        <div class="custom-card p-2">
-                            <h6 class="mb-2" style="font-weight: 600; font-size: 0.9rem;">Quick Actions</h6>
-                            <div class="d-grid gap-1">
-                                <button class="btn btn-outline-primary btn-sm text-start" style="font-size: 0.8rem; padding: 0.375rem 0.75rem;">
-                                    <i class="bi bi-plus-circle me-2"></i> New Deployment
-                                </button>
-                                <button class="btn btn-outline-secondary btn-sm text-start" style="font-size: 0.8rem; padding: 0.375rem 0.75rem;">
-                                    <i class="bi bi-arrow-repeat me-2"></i> Sync Agents
-                                </button>
-                                <button class="btn btn-outline-secondary btn-sm text-start" style="font-size: 0.8rem; padding: 0.375rem 0.75rem;">
-                                    <i class="bi bi-file-earmark-text me-2"></i> View Logs
-                                </button>
-                            </div>
-                        </div>
-
-                    </div>
-
                 </div>
-            </div>
-        </div>
-
-        <!-- Live Events Card (hidden by default) -->
-        <div id="live-events-card" class="custom-card p-2 mt-3" style="display:none;">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <h6 class="mb-0" style="font-weight: 600;">
-                    <i class="bi bi-broadcast me-2"></i> Live Events
-                </h6>
-                <div>
-                    <button class="btn btn-sm btn-outline-secondary" onclick="AppUI.clearLiveEvents()">Clear</button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="AppUI.toggleLiveEvents()">Close</button>
-                </div>
-            </div>
-            <div id="live-events-wrapper" style="max-height: 300px; overflow-y: auto;">
-                <ul id="live-events-list" class="activity-list" aria-live="polite">
-                    <li class="list-group-item no-events text-muted">No events yet.</li>
-                </ul>
-            </div>
-            <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
-                <small id="live-events-count" class="text-muted">0 events</small>
             </div>
         </div>
 
     </div>
 </div>
 
-<!-- Dashboard-specific WebSocket integration -->
+<style>
+    /* Animation for value changes */
+    .value-changed {
+        animation: highlight-change 1s ease-out;
+    }
+
+    @keyframes highlight-change {
+        0% { color: #28a745; transform: scale(1.2); }
+        100% { color: inherit; transform: scale(1); }
+    }
+
+    /* Row highlight animation */
+    .table-highlight {
+        animation: row-highlight 2s ease-out;
+    }
+
+    @keyframes row-highlight {
+        0% { background-color: rgba(40, 167, 69, 0.3); }
+        100% { background-color: transparent; }
+    }
+</style>
+
+<!-- Real-time dashboard updates -->
 <script th:src="@{/js/dashboard.js}"></script>
 
 </body>

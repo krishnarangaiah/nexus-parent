@@ -27,6 +27,9 @@ public final class WebSocketTopics {
     public static final String AGENTS_STATUS = "/topic/agents/status";
     public static final String AGENTS_METRICS = "/topic/agents/metrics";
 
+    // ========== Command Topics ==========
+    public static final String COMMAND_RESPONSE = "/topic/command/response";
+
     // ========== Release Topics ==========
     public static final String RELEASE_STATUS = "/topic/release/status";
     public static final String RELEASE_PROGRESS = "/topic/release/progress";

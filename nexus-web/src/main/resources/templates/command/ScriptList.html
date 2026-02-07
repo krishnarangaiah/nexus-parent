@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <div th:replace="~{layout/AppLayout :: header}"></div>
+    <title>Command Scripts</title>
+</head>
+<body>
+<div th:replace="~{layout/AppLayout :: nav}"></div>
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4><i class="bi bi-code-slash me-2"></i>Command Scripts</h4>
+        <a th:href="@{/Command/Script/Create}" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i>New Script
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Description</th>
+                        <th>Version</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="script : ${scripts}">
+                        <td>
+                            <strong th:text="${script.displayName}">Script Name</strong>
+                            <br>
+                            <small class="text-muted" th:text="${script.name}">name</small>
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary" th:text="${script.category}">Category</span>
+                        </td>
+                        <td th:text="${script.description}">Description</td>
+                        <td th:text="'v' + ${script.version}">v1</td>
+                        <td>
+                            <span th:if="${script.active}" class="badge bg-success">Active</span>
+                            <span th:unless="${script.active}" class="badge bg-secondary">Inactive</span>
+                            <span th:if="${script.builtIn}" class="badge bg-info">Built-in</span>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a th:href="@{/Command/Script/Edit/{id}(id=${script.id})}"
+                                   class="btn btn-outline-primary">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <button th:unless="${script.builtIn}"
+                                        type="button" class="btn btn-outline-danger delete-btn"
+                                        th:data-id="${script.id}"
+                                        th:data-name="${script.displayName}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(scripts)}">
+                        <td colspan="6" class="text-center text-muted py-4">
+                            No scripts found. <a th:href="@{/Command/Script/Create}">Create your first script</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete script "<span id="delete-script-name"></span>"?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="delete-form" method="post" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.delete-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var id = this.dataset.id;
+                var name = this.dataset.name;
+                document.getElementById('delete-script-name').textContent = name;
+                document.getElementById('delete-form').action = '/Command/Script/Delete/' + id;
+                new bootstrap.Modal(document.getElementById('deleteModal')).show();
+            });
+        });
+    });
+</script>
+
+</body>
+</html>
+

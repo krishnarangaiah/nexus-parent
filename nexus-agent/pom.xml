@@ -23,6 +23,19 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
+        <!-- Groovy for script execution -->
+        <dependency>
+            <groupId>org.apache.groovy</groupId>
+            <artifactId>groovy</artifactId>
+            <version>${groovy.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.groovy</groupId>
+            <artifactId>groovy-json</artifactId>
+            <version>${groovy.version}</version>
+        </dependency>
+
         <!-- Use Java WebSocket API and Tyrus client only -->
         <dependency>
             <groupId>javax.websocket</groupId>

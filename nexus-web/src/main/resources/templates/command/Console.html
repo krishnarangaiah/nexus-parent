@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <div th:replace="~{layout/AppLayout :: header}"></div>
+    <title>Command Console</title>
+    <style>
+        .agent-card {
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+        .agent-card:hover {
+            border-color: #0d6efd;
+        }
+        .agent-card.selected {
+            border-color: #0d6efd;
+            background-color: rgba(13, 110, 253, 0.1);
+        }
+        .agent-card.offline {
+            opacity: 0.6;
+        }
+        .agent-status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        .agent-status-dot.online { background-color: #28a745; }
+        .agent-status-dot.offline { background-color: #dc3545; }
+
+        .script-select-card {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .script-select-card:hover {
+            background-color: #f8f9fa;
+        }
+        .script-select-card.selected {
+            border-color: #28a745;
+            background-color: rgba(40, 167, 69, 0.1);
+        }
+
+        #output-panel {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 5px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .output-entry {
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #333;
+        }
+        .output-entry .agent-name {
+            color: #569cd6;
+        }
+        .output-entry .status-success { color: #4ec9b0; }
+        .output-entry .status-failed { color: #f14c4c; }
+        .output-entry .status-pending { color: #dcdcaa; }
+        .output-entry pre {
+            margin: 5px 0 0 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+<div th:replace="~{layout/AppLayout :: nav}"></div>
+
+<div class="main-content">
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <!-- Left Panel: Agent Selection -->
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-pc-display me-2"></i>Agents</span>
+                        <button class="btn btn-sm btn-outline-primary" onclick="selectAllAgents()">
+                            Select All
+                        </button>
+                    </div>
+                    <div class="card-body p-2" style="max-height: 500px; overflow-y: auto;">
+                        <div th:if="${#lists.isEmpty(agents)}" class="text-muted text-center p-3">
+                            No agents registered
+                        </div>
+                        <div th:each="agent : ${agents}"
+                             th:classappend="${connectedAgentUuids.contains(agent.agentUuid)} ? '' : 'offline'"
+                             th:data-uuid="${agent.agentUuid}"
+                             th:data-connected="${connectedAgentUuids.contains(agent.agentUuid)}"
+                             class="card agent-card mb-2"
+                             onclick="toggleAgentSelection(this)">
+                            <div class="card-body p-2">
+                                <div class="d-flex align-items-center">
+                                <span th:classappend="${connectedAgentUuids.contains(agent.agentUuid)} ? 'online' : 'offline'"
+                                      class="agent-status-dot"></span>
+                                    <strong th:text="${agent.displayName}">Agent Name</strong>
+                                </div>
+                                <small class="text-muted" th:text="${agent.hostname ?: 'Unknown host'}">hostname</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <small class="text-muted">
+                            Selected: <span id="selected-count">0</span> agents
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Middle Panel: Script Selection & Execution -->
+            <div class="col-md-5">
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <i class="bi bi-code-slash me-2"></i>Select Command
+                    </div>
+                    <div class="card-body p-2" style="max-height: 300px; overflow-y: auto;">
+                        <div th:if="${#lists.isEmpty(scripts)}" class="text-muted text-center p-3">
+                            No scripts available. <a th:href="@{/Command/Script/Create}">Create one</a>
+                        </div>
+                        <div th:each="script : ${scripts}"
+                             th:data-id="${script.id}"
+                             th:data-name="${script.name}"
+                             class="card script-select-card mb-2"
+                             onclick="selectScript(this)">
+                            <div class="card-body p-2">
+                                <div class="d-flex justify-content-between">
+                                    <strong th:text="${script.displayName}">Script Name</strong>
+                                    <span class="badge bg-secondary" th:text="${script.category}">Category</span>
+                                </div>
+                                <small class="text-muted" th:text="${script.description}">Description</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <i class="bi bi-gear me-2"></i>Arguments (Optional)
+                    </div>
+                    <div class="card-body">
+                    <textarea id="command-args" class="form-control" rows="2"
+                              placeholder="Enter arguments to pass to the script..."></textarea>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button id="execute-btn" class="btn btn-lg btn-primary" onclick="executeCommand()" disabled>
+                        <i class="bi bi-play-fill me-2"></i>Execute Command
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Panel: Output -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-terminal me-2"></i>Output</span>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="clearOutput()">
+                            Clear
+                        </button>
+                    </div>
+                    <div class="card-body p-0">
+                        <div id="output-panel">
+                            <div class="text-muted text-center p-3">
+                                Output will appear here...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script th:inline="javascript">
+    const selectedAgents = new Set();
+    let selectedScriptId = null;
+    let selectedScriptName = null;
+    const pendingExecutions = new Map(); // requestId -> agentUuid
+
+    function toggleAgentSelection(card) {
+        const uuid = card.dataset.uuid;
+        const isConnected = card.dataset.connected === 'true';
+
+        if (!isConnected) {
+            alert('Cannot select offline agent');
+            return;
+        }
+
+        if (selectedAgents.has(uuid)) {
+            selectedAgents.delete(uuid);
+            card.classList.remove('selected');
+        } else {
+            selectedAgents.add(uuid);
+            card.classList.add('selected');
+        }
+        updateUI();
+    }
+
+    function selectAllAgents() {
+        document.querySelectorAll('.agent-card').forEach(card => {
+            if (card.dataset.connected === 'true') {
+                selectedAgents.add(card.dataset.uuid);
+                card.classList.add('selected');
+            }
+        });
+        updateUI();
+    }
+
+    function selectScript(card) {
+        // Deselect previous
+        document.querySelectorAll('.script-select-card').forEach(c => {
+            c.classList.remove('selected');
+        });
+
+        // Select this one
+        card.classList.add('selected');
+        selectedScriptId = parseInt(card.dataset.id);
+        selectedScriptName = card.dataset.name;
+        updateUI();
+    }
+
+    function updateUI() {
+        document.getElementById('selected-count').textContent = selectedAgents.size;
+
+        const canExecute = selectedAgents.size > 0 && selectedScriptId != null;
+        document.getElementById('execute-btn').disabled = !canExecute;
+    }
+
+    function executeCommand() {
+        if (selectedAgents.size === 0 || selectedScriptId == null) {
+            alert('Please select at least one agent and a command');
+            return;
+        }
+
+        const args = document.getElementById('command-args').value;
+
+        fetch('/Command/Execute', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                scriptId: selectedScriptId,
+                agentUuids: Array.from(selectedAgents),
+                arguments: args,
+                initiatedBy: 'admin' // TODO: Get from session
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                data.executions.forEach(exec => {
+                    addOutputEntry(exec.agentUuid, exec.requestId, 'PENDING', 'Waiting for response...');
+                    if (exec.requestId) {
+                        pendingExecutions.set(exec.requestId, exec.agentUuid);
+                    }
+                });
+                // Start polling for results
+                startPolling();
+            } else {
+                alert('Error: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(err => {
+            console.error('Execute error:', err);
+            alert('Failed to execute command');
+        });
+    }
+
+    function addOutputEntry(agentUuid, requestId, status, output) {
+        const panel = document.getElementById('output-panel');
+
+        // Remove placeholder if present
+        if (panel.querySelector('.text-muted')) {
+            panel.innerHTML = '';
+        }
+
+        const statusClass = status === 'SUCCESS' ? 'status-success' :
+                           status === 'FAILED' || status === 'ERROR' ? 'status-failed' : 'status-pending';
+
+        const entry = document.createElement('div');
+        entry.className = 'output-entry';
+        entry.id = 'output-' + requestId;
+        entry.innerHTML = `
+            <div>
+                <span class="agent-name">[${agentUuid}]</span>
+                <span class="${statusClass}">${status}</span>
+            </div>
+            <pre>${escapeHtml(output)}</pre>
+        `;
+        panel.insertBefore(entry, panel.firstChild);
+    }
+
+    function updateOutputEntry(requestId, status, output) {
+        const entry = document.getElementById('output-' + requestId);
+        if (entry) {
+            const statusClass = status === 'SUCCESS' ? 'status-success' :
+                               status === 'FAILED' || status === 'ERROR' ? 'status-failed' : 'status-pending';
+
+            const statusSpan = entry.querySelector('span:nth-child(2)');
+            statusSpan.className = statusClass;
+            statusSpan.textContent = status;
+
+            entry.querySelector('pre').textContent = output || '(no output)';
+        }
+    }
+
+    let pollingInterval = null;
+
+    function startPolling() {
+        if (pollingInterval) return;
+
+        pollingInterval = setInterval(() => {
+            if (pendingExecutions.size === 0) {
+                clearInterval(pollingInterval);
+                pollingInterval = null;
+                return;
+            }
+
+            pendingExecutions.forEach((agentUuid, requestId) => {
+                fetch('/Command/Execution/Status/' + requestId)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.isComplete) {
+                            const output = data.output || data.errorOutput || '(no output)';
+                            updateOutputEntry(requestId, data.status, output);
+                            pendingExecutions.delete(requestId);
+                        }
+                    })
+                    .catch(err => console.error('Poll error:', err));
+            });
+        }, 1000);
+    }
+
+    function clearOutput() {
+        document.getElementById('output-panel').innerHTML =
+            '<div class="text-muted text-center p-3">Output will appear here...</div>';
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+</script>
+
+</body>
+</html>
+

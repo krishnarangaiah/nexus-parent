@@ -90,11 +90,47 @@ public class AgentPublisher extends WebSocketPublisher {
     public void publishAgentConnectionEvent(String agentId, boolean connected) {
         Map<String, Object> eventData = new LinkedHashMap<>();
         eventData.put("type", connected ? "agent_connected" : "agent_disconnected");
-        eventData.put("agentId", agentId);
+        eventData.put("agentUuid", agentId);
+        eventData.put("status", connected ? "ONLINE" : "OFFLINE");
         eventData.put("timestamp", LocalDateTime.now().format(TIME_FORMATTER));
 
         publish(WebSocketTopics.AGENTS_STATUS, eventData);
         LOGGER.info("Agent {} {}", agentId, connected ? "connected" : "disconnected");
+    }
+
+    /**
+     * Publish agent connection event with full agent details.
+     *
+     * @param agent The agent entity
+     * @param connected true if connected, false if disconnected
+     */
+    public void publishAgentConnectionEvent(Agent agent, boolean connected) {
+        Map<String, Object> eventData = new LinkedHashMap<>();
+        eventData.put("type", connected ? "agent_connected" : "agent_disconnected");
+        eventData.put("agentUuid", agent.getAgentUuid());
+        eventData.put("displayName", agent.getDisplayName());
+        eventData.put("hostname", agent.getHostname());
+        eventData.put("status", connected ? "ONLINE" : "OFFLINE");
+        eventData.put("timestamp", LocalDateTime.now().format(TIME_FORMATTER));
+
+        publish(WebSocketTopics.AGENTS_STATUS, eventData);
+        LOGGER.info("Agent {} ({}) {}", agent.getDisplayName(), agent.getAgentUuid(),
+            connected ? "connected" : "disconnected");
+    }
+
+    /**
+     * Publish dashboard statistics update.
+     * Call this when agent counts change.
+     */
+    public void publishDashboardStats(long totalAgents, long onlineAgents) {
+        Map<String, Object> statsData = new LinkedHashMap<>();
+        statsData.put("type", "dashboard_stats");
+        statsData.put("totalAgents", totalAgents);
+        statsData.put("onlineAgents", onlineAgents);
+        statsData.put("timestamp", LocalDateTime.now().format(TIME_FORMATTER));
+
+        publish(WebSocketTopics.AGENTS_STATUS, statsData);
+        LOGGER.debug("Published dashboard stats: total={}, online={}", totalAgents, onlineAgents);
     }
 }
 
