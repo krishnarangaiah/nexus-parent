@@ -1,8 +1,8 @@
 package app.controller;
 
-import app.dao.model.command.CommandExecutionService;
-import app.dao.model.command.CommandScriptService;
-import app.dao.model.monitoring.AgentService;
+import app.service.command.CommandExecutionService;
+import app.service.command.CommandScriptService;
+import app.service.agent.AgentService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;

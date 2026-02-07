@@ -274,7 +274,7 @@
 </style>
 
 <!-- Real-time dashboard updates -->
-<script th:src="@{/js/dashboard.js}"></script>
+<script th:src="@{/js/dashboard.js(v=${#dates.createNow().time})}"></script>
 
 </body>
 </html>

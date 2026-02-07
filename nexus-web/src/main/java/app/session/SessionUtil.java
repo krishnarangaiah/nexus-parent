@@ -1,6 +1,6 @@
 package app.session;
 
-import app.dao.model.user.AppUser;
+import app.entity.user.AppUser;
 import jakarta.servlet.http.HttpSession;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;

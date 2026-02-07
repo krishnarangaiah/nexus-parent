@@ -1,6 +1,6 @@
 package app.controller;
 
-import app.conf.AppProperty;
+import app.config.AppProperty;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;

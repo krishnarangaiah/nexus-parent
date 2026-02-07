@@ -1,7 +1,7 @@
 package app.session
 
+import app.entity.user.AppUser
 
-import app.dao.model.user.AppUser
 
 class SessionUser implements Serializable {
 

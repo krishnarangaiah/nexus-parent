@@ -1,7 +1,7 @@
 package app.controller;
 
-import app.dao.model.monitoring.Agent;
-import app.dao.model.monitoring.AgentService;
+import app.entity.agent.Agent;
+import app.service.agent.AgentService;
 import app.websocket.publisher.AgentPublisher;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.Collections;
-import java.util.Map;
 
 /**
  * Agent Monitoring Controller

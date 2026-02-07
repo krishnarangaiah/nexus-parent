@@ -5,11 +5,11 @@ import app.core.dto.CommandResponse
 import app.core.dto.RegistrationRequest
 import app.core.protocol.MessageType
 import app.core.protocol.NexusProtocol
-import app.dao.model.command.CommandExecution
-import app.dao.model.command.CommandExecutionService
-import app.dao.model.command.CommandScript
-import app.dao.model.monitoring.Agent
-import app.dao.model.monitoring.AgentService
+import app.entity.command.CommandExecution
+import app.entity.command.CommandScript
+import app.entity.agent.Agent
+import app.service.command.CommandExecutionService
+import app.service.agent.AgentService
 import app.websocket.publisher.AgentPublisher
 import com.google.gson.JsonObject
 import org.apache.logging.log4j.LogManager

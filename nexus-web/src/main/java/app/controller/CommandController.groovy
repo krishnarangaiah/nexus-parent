@@ -1,11 +1,11 @@
 package app.controller
 
-import app.dao.model.command.CommandExecution
-import app.dao.model.command.CommandExecutionService
-import app.dao.model.command.CommandScript
-import app.dao.model.command.CommandScriptService
-import app.dao.model.monitoring.Agent
-import app.dao.model.monitoring.AgentService
+import app.entity.command.CommandExecution
+import app.entity.command.CommandScript
+import app.entity.agent.Agent
+import app.service.command.CommandExecutionService
+import app.service.command.CommandScriptService
+import app.service.agent.AgentService
 import app.websocket.agent.AgentConnectionManager
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger

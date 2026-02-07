@@ -1,6 +1,6 @@
 package app.websocket.publisher;
 
-import app.dao.model.monitoring.Agent;
+import app.entity.agent.Agent;
 import app.websocket.topic.WebSocketTopics;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

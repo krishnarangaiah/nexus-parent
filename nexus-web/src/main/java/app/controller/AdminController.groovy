@@ -1,9 +1,7 @@
 package app.controller
 
-import app.conf.AppProperty
-import app.dao.model.component.RatesComponent
-import app.dao.service.RatesComponentService
-import app.dao.service.UserService
+import app.config.AppProperty
+import app.service.user.UserService
 import jakarta.servlet.http.HttpServletRequest
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger

@@ -1,9 +1,9 @@
 package app.controller;
 
-import app.conf.AppProperty;
-import app.dao.model.user.AppUser;
-import app.dao.model.user.Role;
-import app.dao.service.UserService;
+import app.config.AppProperty;
+import app.entity.user.AppUser;
+import app.entity.user.Role;
+import app.service.user.UserService;
 import app.session.SessionUtil;
 import jakarta.servlet.http.HttpSession;
 import org.apache.logging.log4j.LogManager;
