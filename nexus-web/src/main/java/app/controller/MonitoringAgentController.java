@@ -3,6 +3,7 @@ package app.controller;
 import app.dao.model.monitoring.Agent;
 import app.dao.model.monitoring.AgentService;
 import app.websocket.dto.Metrics;
+import app.websocket.publisher.AgentPublisher;
 import com.google.gson.Gson;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -15,7 +16,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -43,7 +43,7 @@ public class MonitoringAgentController {
     private AgentService agentService;
 
     @Autowired
-    private SimpMessagingTemplate messagingTemplate;
+    private AgentPublisher agentPublisher;
 
     @PostConstruct
     public void init() {
@@ -187,7 +187,7 @@ public class MonitoringAgentController {
         try {
             List<Agent> agents = agentService.findAll();
             agents.forEach(agent -> agentSnapshot.put(agent.getAgentId(), agent));
-            messagingTemplate.convertAndSend("/topic/agents/status", agentSnapshot);
+            agentPublisher.publishAgentStatusBulk(agentSnapshot);
         } catch (Throwable t) {
             LOGGER.error("Failed broadcasting agent status update", t);
         }
