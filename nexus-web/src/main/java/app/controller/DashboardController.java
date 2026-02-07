@@ -10,7 +10,7 @@ public class DashboardController {
 
     private static final Logger LOGGER = LogManager.getLogger(DashboardController.class);
 
-    @GetMapping(value = "AppUser/Dashboard")
+    @GetMapping(value = "/AppUser/Dashboard")
     public String showUserDashboard() {
         LOGGER.info("Displaying dashboard");
         return "app/dashboard/Dashboard.html";

@@ -1,22 +1,26 @@
 package app.websocket;
 
+
 import app.websocket.dto.Metrics;
+import app.websocket.ontology.CommunicationProtocol;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.web.socket.*;
+import org.springframework.web.socket.CloseStatus;
+import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-@Component("plainWebSocketHandler")
+@Component
 public class PlainWebSocketHandler extends TextWebSocketHandler {
 
-    private static final org.apache.logging.log4j.Logger LOGGER =
-        org.apache.logging.log4j.LogManager.getLogger(PlainWebSocketHandler.class);
+    private static final Logger LOGGER = LogManager.getLogger(PlainWebSocketHandler.class);
 
     private static final Gson GSON = new Gson();
     private final ConcurrentHashMap<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
@@ -30,8 +34,15 @@ public class PlainWebSocketHandler extends TextWebSocketHandler {
         sessions.put(sessionId, session);
         LOGGER.info("Plain WebSocket connection established: {}", sessionId);
 
-        // Send welcome message
-        session.sendMessage(new TextMessage("{\"type\":\"welcome\",\"message\":\"Connected to Nexus WebSocket\"}"));
+
+        // Immediately ask agent for:
+        // 1. Current version (assuming VERSION command is implemented)
+        session.sendMessage(new TextMessage("VERSION"));
+        // 2. Current jar location (assuming JAR_LOCATION command is implemented)
+        session.sendMessage(new TextMessage("JAR_LOCATION"));
+        // 3. List files from running dir (LS command)
+        session.sendMessage(new TextMessage("LS"));
+
     }
 
     @Override
@@ -40,26 +51,27 @@ public class PlainWebSocketHandler extends TextWebSocketHandler {
         LOGGER.info("Received message from {}: {}", session.getId(), payload);
 
         try {
-            JsonObject json = JsonParser.parseString(payload).getAsJsonObject();
-            String type = json.has("type") ? json.get("type").getAsString() : "unknown";
+            JsonObject json = CommunicationProtocol.parseMessage(payload);
+            String type = CommunicationProtocol.getMessageType(json);
+            JsonObject messagePayload = CommunicationProtocol.getPayload(json);
 
             switch (type) {
                 case "registration":
-                    handleRegistration(session, json);
+                    handleRegistration(session, messagePayload);
                     break;
                 case "metrics":
-                    handleMetrics(session, json);
+                    handleMetrics(session, messagePayload);
                     break;
                 case "test":
-                    handleTest(session, json);
+                    handleTest(session, messagePayload);
                     break;
                 default:
                     LOGGER.warn("Unknown message type: {}", type);
-                    session.sendMessage(new TextMessage("{\"type\":\"error\",\"message\":\"Unknown message type: " + type + "\"}"));
+                    session.sendMessage(new TextMessage(CommunicationProtocol.createMessage("error", new JsonObject())));
             }
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
             LOGGER.error("Error processing message: {}", e.getMessage());
-            session.sendMessage(new TextMessage("{\"type\":\"error\",\"message\":\"Invalid JSON format\"}"));
+            session.sendMessage(new TextMessage(CommunicationProtocol.createMessage("error", new JsonObject())));
         }
     }
 
@@ -109,7 +121,7 @@ public class PlainWebSocketHandler extends TextWebSocketHandler {
         String agentId = (String) session.getAttributes().get("agentId");
         sessions.remove(sessionId);
         LOGGER.info("Plain WebSocket connection closed: {} (agent: {}), status: {}",
-                   sessionId, agentId, closeStatus);
+                sessionId, agentId, closeStatus);
     }
 
     @Override
@@ -117,4 +129,3 @@ public class PlainWebSocketHandler extends TextWebSocketHandler {
         return false;
     }
 }
-
