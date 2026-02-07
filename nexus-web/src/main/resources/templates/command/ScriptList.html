@@ -1,13 +1,15 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <div th:replace="~{layout/AppLayout :: header}"></div>
+    <header th:insert="layout/AppLayout.html :: header"></header>
     <title>Command Scripts</title>
 </head>
 <body>
-<div th:replace="~{layout/AppLayout :: nav}"></div>
+<!-- <div th:insert="layout/AppLayout.html :: nav"></div> -->
+<div th:replace="layout/AppLayout.html :: sidebar"></div>
 
-<div class="container-fluid mt-4">
+<div class="main-content">
+<div class="container-fluid px-3">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h4><i class="bi bi-code-slash me-2"></i>Command Scripts</h4>
         <a th:href="@{/Command/Script/Create}" class="btn btn-primary">
@@ -106,6 +108,8 @@
     });
 </script>
 
+</div>
+</div>
 </body>
 </html>
 

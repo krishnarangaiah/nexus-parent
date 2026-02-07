@@ -11,12 +11,6 @@
     <meta http-equiv="Pragma" content="no-cache"/>
     <meta http-equiv="Expires" content="0"/>
 
-    <!-- Prevent flash of unstyled content -->
-    <style>
-        body { opacity: 0; }
-        body.loaded { opacity: 1; transition: opacity 150ms ease; }
-    </style>
-
     <!-- Stylesheets -->
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}"/>
     <link rel="stylesheet" th:href="@{/webjars/bootstrap-icons/1.11.3/font/bootstrap-icons.css}"/>
@@ -36,27 +30,9 @@
     <script type="text/javascript" th:src="@{/js/ws-topics.js(v=${#dates.createNow().time})}"></script>
     <script type="text/javascript" th:src="@{/js/page-websocket.js(v=${#dates.createNow().time})}"></script>
     <script type="text/javascript" th:src="@{/js/ws-connection.js(v=${#dates.createNow().time})}"></script>
-
-    <!-- Quick body class for loaded state -->
-    <script>
-        // Show body immediately for SPA requests, otherwise wait for load
-        if (document.referrer && document.referrer.includes(window.location.origin)) {
-            document.body && document.body.classList.add('loaded');
-        }
-        document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(function() { document.body.classList.add('loaded'); }, 30);
-        });
-    </script>
 </div>
 
 <div th:fragment="nav">
-    <!-- SPA Loading Indicator (created by JS, but pre-render for faster first paint) -->
-    <div class="spa-progress">
-        <div class="spa-progress-bar"></div>
-    </div>
-    <div class="spa-overlay">
-        <div class="spa-spinner"></div>
-    </div>
 
     <nav class="navbar fixed-top navbar-expand-lg">
         <div class="container-fluid">

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <div th:replace="~{layout/AppLayout :: header}"></div>
+    <header th:insert="layout/AppLayout.html :: header"></header>
     <title>Command Console</title>
     <style>
         .agent-card {
@@ -71,6 +71,7 @@
 </head>
 <body>
 <div th:replace="~{layout/AppLayout :: nav}"></div>
+<div th:insert="~{layout/AppLayout :: sidebar}"></div>
 
 <div class="main-content">
     <div class="container-fluid mt-4">
@@ -346,6 +347,9 @@
         return div.innerHTML;
     }
 </script>
+
+<!-- Real-time agent status updates -->
+<script th:src="@{/js/dashboard.js(v=${#dates.createNow().time})}"></script>
 
 </body>
 </html>
